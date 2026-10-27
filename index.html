@@ -85,7 +85,7 @@ main { padding-block: 28px 56px }
 .askbox.compact .go { width: 36px; height: 36px }
 .examples { display: flex; flex-direction: column; align-items: center; gap: 6px }
 .examples button { border: 0; background: transparent; min-height: 36px; padding: 0 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 14.5px; border-radius: 999px } .examples button:hover { background: var(--surface) }
-.examples .k { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); min-width: 72px; text-align: right }
+.examples .k { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); min-width: 112px; text-align: right }
 .examples .t { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-2) }
 .reading { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2) }
 .reading .src { font-size: 12px; color: var(--ink-3); margin-left: 4px }
@@ -555,9 +555,11 @@ function askView() {
   const f = S.ask.facets; const draftVal = h(S.ask.draft);
   if (!f) {
     const liveN = S.assets.filter(searchable).length;
-    const ex = [['Partner', (S.partners[0] ? S.partners[0].name : 'Harrowgate') + '\'s assets for AI in banking, Indonesia'], ['Use case', 'Which partners can do gen AI customer service for banks in Indonesia?'], ['Use case', 'SAP on Google Cloud for manufacturers in Vietnam']];
+    const p0 = byId(S.partners, 'harrowgate') || S.partners.find(p => p.status !== 'invited');
+    const ex = [['Partner', (p0 ? p0.name : 'Harrowgate') + '\'s assets for AI in banking, Indonesia'], ['Use case', 'Which partners can do gen AI customer service for banks in Indonesia?'], ['Industry', 'Case studies for retail'], ['Region', 'Partners with data analytics collateral for Australia'], ['Line of business', 'Security operations collateral for CISOs in telco'], ['Asset type', 'Solution decks on SAP for manufacturers']];
     return '<div class="hero"><div class="word"><span class="mark"></span>GPM Hub</div>' +
       '<form class="askbox" data-ask><label for="ask" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Ask</label><input id="ask" type="text" value="' + draftVal + '" data-field="ask.draft" placeholder="Ask for a partner\'s assets, or find partners for a use case" autocomplete="off"><button class="go" type="submit" data-act="ask" aria-label="Ask">' + arrow() + '</button></form>' +
+      '<p class="small muted" style="margin:14px 0 12px;text-align:center;max-width:560px">Ask in plain words. Name any mix of partner, use case, industry, line of business, region and asset type in one sentence, and narrow the result afterwards.</p>' +
       '<div class="examples">' + ex.map(e => '<button type="button" data-act="example" data-text="' + h(e[1]) + '"><span class="k">' + e[0] + '</span><span class="t">' + h(e[1]) + '</span></button>').join('') + '</div>' +
       '<p class="tiny faint" style="margin-top:28px">Google internal · ' + num(S.partners.filter(p => p.status !== 'invited').length, 'partner', 'partners') + ' · ' + num(liveN, 'verified asset', 'verified assets') + ' · every one reviewed by a Google partner manager before it appears here' + (S.cap.sample && !S.ai.disabled ? ' · the ask is read by the model' : ' · the ask is read by rules in this view') + '</p></div>';
   }
