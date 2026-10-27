@@ -1,0 +1,976 @@
+<title>GPM Hub</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: one centered column (max 1120px), a 64px header with the role switcher, the ask box as the only hero. Cards are flat with a hairline border; the accent is reserved for primary actions and the model's reading. */
+:root {
+  --bg: #FFFFFF; --surface: #F6F6F3; --surface-2: #ECECE7; --ink: #1A1B1E; --ink-2: #55575E; --ink-3: #6F7178;
+  --line: #E3E3DE; --line-2: #C9C9C2;
+  --accent: #1F5FBF; --accent-ink: #FFFFFF; --accent-soft: #E8EFFB;
+  --ok: #1E7A4A; --ok-soft: #E3F3EA; --warn: #8A5A00; --warn-soft: #FBF0D6; --bad: #B3261E; --bad-soft: #FBE5E3;
+  --shadow: 0 1px 2px rgba(20,20,30,.06), 0 8px 24px rgba(20,20,30,.07);
+  --font: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 14px; --r-s: 8px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141518; --surface: #1C1D21; --surface-2: #26272C; --ink: #ECECEA; --ink-2: #B4B6BD; --ink-3: #9A9CA3;
+  --line: #2C2D32; --line-2: #3D3E44; --accent: #7FA8F0; --accent-ink: #0E1B33; --accent-soft: #1D2A44;
+  --ok: #5CC48A; --ok-soft: #163324; --warn: #E0B354; --warn-soft: #3A2E12; --bad: #F28B82; --bad-soft: #3D1F1D;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141518; --surface: #1C1D21; --surface-2: #26272C; --ink: #ECECEA; --ink-2: #B4B6BD; --ink-3: #9A9CA3;
+  --line: #2C2D32; --line-2: #3D3E44; --accent: #7FA8F0; --accent-ink: #0E1B33; --accent-soft: #1D2A44;
+  --ok: #5CC48A; --ok-soft: #163324; --warn: #E0B354; --warn-soft: #3A2E12; --bad: #F28B82; --bad-soft: #3D1F1D;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35); color-scheme: dark }
+html { height: 100% }
+body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased }
+* { box-sizing: border-box }
+a { color: var(--accent); text-decoration: none } a:hover { text-decoration: underline; text-underline-offset: 3px }
+button { font: inherit; color: inherit } input, select, textarea { font: inherit; color: inherit }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+h1, h2, h3 { margin: 0; text-wrap: balance; letter-spacing: -0.015em; line-height: 1.2 }
+h1 { font-size: 26px; font-weight: 700 } h2 { font-size: 18px; font-weight: 600 } h3 { font-size: 15px; font-weight: 600 }
+p { margin: 0 }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.hdr { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line) }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+.hdr .wrap { display: flex; align-items: center; gap: 18px; min-height: 64px; flex-wrap: wrap; padding-block: 8px }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 16px; color: var(--ink); text-decoration: none }
+.brand:hover { text-decoration: none }
+.brand .mark { width: 26px; height: 26px; border-radius: 8px; background: var(--ink); display: inline-block; position: relative }
+.brand .mark::after { content: ""; position: absolute; left: 7px; top: 7px; width: 12px; height: 12px; border-radius: 50%; background: var(--bg) }
+.nav { display: flex; gap: 4px; flex-wrap: wrap }
+.nav a, .nav span { display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border-radius: 999px; color: var(--ink-2); font-weight: 500; text-decoration: none }
+.nav a:hover { background: var(--surface); text-decoration: none; color: var(--ink) }
+.nav a.on { background: var(--surface-2); color: var(--ink); font-weight: 600 }
+.nav span.soon { color: var(--ink-3); border: 1px dashed var(--line-2); font-size: 13px }
+.hdr-right { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap }
+.role { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 10px 0 12px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--bg); font-size: 13px; color: var(--ink-2) }
+.role select { border: 0; background: transparent; font-weight: 600; color: var(--ink); min-height: 36px; max-width: 220px }
+.who { font-size: 13px; color: var(--ink-3) }
+main { padding-block: 28px 56px }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--bg); color: var(--ink); font-weight: 600; font-size: 14px; cursor: pointer; text-decoration: none; white-space: nowrap }
+.btn:hover { background: var(--surface); text-decoration: none }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink) } .btn.primary:hover { opacity: .9 }
+.btn.accent { background: var(--accent); color: var(--accent-ink); border-color: var(--accent) }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--accent) } .btn.ghost:hover { background: var(--accent-soft) }
+.btn.sm { min-height: 34px; padding: 0 12px; font-size: 13px }
+.btn:disabled { opacity: .5; cursor: not-allowed }
+.btn.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent) }
+.pill { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 6px 0 12px; border: 1px solid var(--line-2); border-radius: 999px; font-size: 13px; background: var(--bg) }
+.pill .k { color: var(--ink-3); margin-right: 2px }
+.pill button { width: 26px; height: 26px; border: 0; border-radius: 50%; background: transparent; cursor: pointer; color: var(--ink-2); font-size: 16px; line-height: 1 } .pill button:hover { background: var(--surface-2) }
+.chip { display: inline-flex; align-items: center; min-height: 36px; padding: 0 14px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--bg); font-size: 13.5px; cursor: pointer; font-weight: 500 } .chip:hover { background: var(--surface) }
+.badge { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; padding: 0 9px; border-radius: 999px; font-size: 12px; font-weight: 600; letter-spacing: .01em; border: 1px solid transparent; white-space: nowrap }
+.badge.live { background: var(--ok-soft); color: var(--ok) } .badge.expiring { background: var(--warn-soft); color: var(--warn) } .badge.pending { background: var(--surface-2); color: var(--ink-2) } .badge.returned { background: var(--bad-soft); color: var(--bad) } .badge.expired { background: transparent; color: var(--ink-3); border-color: var(--line-2); text-decoration: line-through } .badge.draft { background: transparent; color: var(--ink-3); border: 1px dashed var(--line-2) } .badge.archived { color: var(--ink-3); border-color: var(--line) } .badge.missing { color: var(--ink-3); border: 1px dashed var(--line-2) } .badge.request { background: var(--accent-soft); color: var(--accent) }
+.card { border: 1px solid var(--line); border-radius: var(--r); background: var(--bg); padding: 20px 22px }
+.card.soft { background: var(--surface); border-color: transparent }
+.muted { color: var(--ink-2) } .faint { color: var(--ink-3) } .small { font-size: 13px } .tiny { font-size: 12px }
+.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap } .col { display: flex; flex-direction: column; gap: 12px }
+.between { justify-content: space-between } .grow { flex: 1 1 auto; min-width: 0 }
+.stack > * + * { margin-top: 14px }
+.thumb { background: var(--surface-2); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--ink-3); font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; overflow: hidden }
+.thumb img, .thumb video { width: 100%; height: 100%; object-fit: cover }
+/* ask */
+.hero { display: flex; flex-direction: column; align-items: center; gap: 24px; padding-block: 72px 40px; text-align: center }
+.hero .word { font-size: 42px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; display: flex; align-items: center; gap: 14px }
+.hero .word .mark { width: 40px; height: 40px; border-radius: 12px; background: var(--ink); position: relative } .hero .word .mark::after { content: ""; position: absolute; left: 11px; top: 11px; width: 18px; height: 18px; border-radius: 50%; background: var(--bg) }
+.askbox { width: 100%; max-width: 720px; display: flex; align-items: center; gap: 6px; border: 1px solid var(--line-2); border-radius: 999px; padding: 0 8px 0 18px; background: var(--bg); box-shadow: var(--shadow) }
+.askbox:focus-within { border-color: var(--accent) }
+.askbox input { flex: 1 1 auto; min-width: 0; min-height: 56px; border: 0; outline: 0; background: transparent; font-size: 17px }
+.askbox.compact input { min-height: 46px; font-size: 15px }
+.askbox .go { width: 42px; height: 42px; border: 0; border-radius: 50%; background: var(--ink); color: var(--bg); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto }
+.askbox.compact .go { width: 36px; height: 36px }
+.examples { display: flex; flex-direction: column; align-items: center; gap: 6px }
+.examples button { border: 0; background: transparent; min-height: 36px; padding: 0 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; color: var(--ink-2); font-size: 14.5px; border-radius: 999px } .examples button:hover { background: var(--surface) }
+.examples .k { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3); min-width: 72px; text-align: right }
+.examples .t { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-2) }
+.reading { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 14px; color: var(--ink-2) }
+.reading .src { font-size: 12px; color: var(--ink-3); margin-left: 4px }
+.answer { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px }
+.answer.kit-open { grid-template-columns: minmax(0, 1fr) 300px }
+@media (max-width: 860px) { .answer.kit-open { grid-template-columns: minmax(0, 1fr) } }
+.pcard { border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; display: flex; flex-direction: column; gap: 12px }
+.pcard .head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap }
+.pcard .logo { width: 44px; height: 44px; border-radius: 12px; background: var(--surface-2); display: inline-flex; align-items: center; justify-content: center; font-weight: 700; color: var(--ink-2); flex: 0 0 auto }
+.arow { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); flex-wrap: wrap }
+.arow .thumb { width: 56px; height: 38px; flex: 0 0 auto; font-size: 10px }
+.grid-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px }
+.acard { display: flex; flex-direction: column; gap: 8px }
+.acard .thumb { aspect-ratio: 16 / 10; width: 100%; max-width: 100%; font-size: 12px }
+.acard .title { font-weight: 600; color: var(--ink); line-height: 1.3 }
+.kitpanel { border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 8px; align-self: start; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 80px) }
+.kitpanel .item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px }
+/* tables */
+.table { border: 1px solid var(--line); border-radius: var(--r); overflow-x: auto }
+table { border-collapse: collapse; width: 100%; min-width: 720px; font-size: 14px }
+th { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink-3); letter-spacing: .04em; text-transform: uppercase; padding: 12px 14px; border-bottom: 1px solid var(--line) }
+td { padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: middle } tr:last-child td { border-bottom: 0 }
+.num { font-variant-numeric: tabular-nums }
+/* forms */
+label.f { display: flex; flex-direction: column; gap: 5px; font-size: 13px; font-weight: 600 }
+label.f span.hint { font-weight: 400; color: var(--ink-3) }
+.in, select.in, textarea.in { min-height: 42px; border: 1px solid var(--line-2); border-radius: var(--r-s); padding: 8px 12px; background: var(--bg); font-size: 14px; font-weight: 400; width: 100% } textarea.in { resize: vertical }
+.check { display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: 14px; font-weight: 400 } .check input { width: 18px; height: 18px; margin: 0 }
+.fgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px } @media (max-width: 700px) { .fgrid { grid-template-columns: minmax(0, 1fr) } }
+.drop { border: 1.5px dashed var(--line-2); border-radius: var(--r); padding: 28px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; background: var(--surface) }
+.steps { display: flex; align-items: center; gap: 8px; font-size: 13.5px; flex-wrap: wrap }
+.steps .s { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-3) } .steps .s.on { color: var(--ink); font-weight: 600 }
+.steps .n { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--line-2); display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700 } .steps .s.on .n, .steps .s.done .n { background: var(--ink); color: var(--bg); border-color: var(--ink) }
+.steps .bar { width: 28px; height: 1px; background: var(--line-2) }
+/* tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px }
+.tile { border: 1px solid var(--line); border-radius: var(--r); padding: 14px 16px } .tile .v { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.1 } .tile .l { font-size: 12.5px; color: var(--ink-2); margin-top: 4px }
+.tile.warn .v { color: var(--warn) } .tile.bad .v { color: var(--bad) }
+.todo { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); flex-wrap: wrap }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); flex-wrap: wrap } .tabs button { min-height: 42px; padding: 0 12px; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; background: transparent; cursor: pointer; color: var(--ink-2); font-size: 14px; font-weight: 500 } .tabs button.on { color: var(--ink); border-bottom-color: var(--ink); font-weight: 600 }
+.egrid { display: grid; grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 5px; font-size: 12px; align-items: center } .egrid .c { text-align: center; border-radius: 6px; padding: 6px 4px; font-weight: 600 } .egrid .c.live { background: var(--ok-soft); color: var(--ok) } .egrid .c.expiring { background: var(--warn-soft); color: var(--warn) } .egrid .c.pending { background: var(--surface-2); color: var(--ink-2) } .egrid .c.returned { background: var(--bad-soft); color: var(--bad) } .egrid .c.missing { border: 1px dashed var(--line-2); color: var(--ink-3) } .egrid .hd { color: var(--ink-3); text-align: center; font-weight: 600 }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; box-shadow: var(--shadow); z-index: 20; max-width: calc(100% - 32px) }
+.empty { border: 1.5px dashed var(--line-2); border-radius: var(--r); padding: 28px 24px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start }
+.sk { background: var(--surface-2); border-radius: 6px; height: 14px }
+.eyebrow { font-size: 11.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3) }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start } @media (max-width: 900px) { .two { grid-template-columns: minmax(0, 1fr) } }
+.split { display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 24px; align-items: start } @media (max-width: 900px) { .split { grid-template-columns: minmax(0, 1fr) } }
+.qitem { width: 100%; text-align: left; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--bg); cursor: pointer; display: flex; flex-direction: column; gap: 4px } .qitem.on { border-color: var(--ink); background: var(--surface) }
+.email { border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; max-width: 680px } .email .meta { background: var(--surface); padding: 12px 20px; font-size: 13px; color: var(--ink-2); display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 4px 10px } .email .body { padding: 24px 28px; display: flex; flex-direction: column; gap: 18px }
+.dl { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px 12px; font-size: 14px; margin: 0 } .dl dt { color: var(--ink-3) } .dl dd { margin: 0 }
+@media (prefers-reduced-motion: no-preference) { .btn, .chip, .pill, .qitem { transition: background .15s, border-color .15s } }
+</style>
+
+<div id="app">
+  <div class="hdr"><div class="wrap"><span class="brand"><span class="mark"></span>GPM Hub</span><span class="who" style="margin-left:auto">Loading the library…</span></div></div>
+  <main class="wrap"><div class="hero"><div class="word"><span class="mark"></span>GPM Hub</div><div class="askbox"><input type="text" placeholder="Ask for a partner's assets, or find partners for a use case" disabled><span class="go"></span></div><p class="muted">Connecting to the shared library. Partners, assets, kits and the review queue load from here.</p></div></main>
+</div>
+
+<script>
+// ── demo edition: stand-in for the hosted runtime (in-memory store, no sign-in) ──
+(function () {
+  if (window.claude && window.claude.use) return;
+  const seeds = {"assets":{"a1":{"title":"Bank Nusantara — AI contact centre","partnerId":"harrowgate","type":"Case study","usecase":"Gemini for customer experience","solution":"Artificial Intelligence","industry":"Financial Services","lob":"Customer service and CX","region":"Indonesia","language":"Bahasa, English","summary":"A top-5 Indonesian bank moved 60% of tier-1 queries to a Gemini-based assistant across Bahasa and English, with Harrowgate running the programme from pilot to three contact centres. Outcomes on page 2, architecture on page 4.","status":"live","validUntil":"2026-11-12","extEvents":true,"extPublishing":true,"fileAssetId":null,"fileName":"bank-nusantara-ai-contact-centre-v3.pdf","fileType":"","version":3,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a10":{"title":"Agentic SOC for a telco, solution flier","partnerId":"northbridge","type":"Solution flier / brochure","usecase":"Agentic SOC","solution":"Security","industry":"Telecommunications","lob":"Risk, security and compliance","region":"Malaysia","language":"English","summary":"Flier on Northbridge's managed SOC on Google Security Operations for a Malaysian operator: triage time and analyst load before and after.","status":"live","validUntil":"2027-06-30","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"northbridge-agentic-soc-flier.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, Retail","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a11":{"title":"SAP on Google Cloud, architecture and joint proposition","partnerId":"tessera","type":"GSI–GCP architecture and joint proposition","usecase":"SAP","solution":"Infrastructure Modernization","industry":"Manufacturing","lob":"Finance","region":"Vietnam","language":"English","summary":"How Tessera runs SAP migrations to Google Cloud for Vietnamese manufacturers: landing zone, RISE options and the first 90 days.","status":"pending","validUntil":"2027-10-21","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"tessera-sap-gcp-architecture.pptx","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-21T00:00:00.000Z","verifiedAt":null,"verifiedBy":null,"returnNote":"","createdAt":"2026-10-21T00:00:00.000Z","updatedAt":"2026-10-21T00:00:00.000Z"},"a12":{"title":"Government services analytics, 90-second video","partnerId":"calyx","type":"Video","usecase":"Business Intelligence","solution":"Data Analytics","industry":"Government","lob":"Finance","region":"Singapore","language":"English","summary":"Short explainer on a Singapore agency's Looker rollout for budget reporting. Calyx was the delivery partner.","status":"live","validUntil":"2027-03-31","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"calyx-gov-analytics.mp4","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-09-08T00:00:00.000Z","verifiedAt":"2026-09-12T00:00:00.000Z","verifiedBy":"Partner manager, Public sector","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a13":{"title":"Digital bank — onboarding with Gemini","partnerId":"northbridge","type":"Case study","usecase":"Gemini for customer experience","solution":"Artificial Intelligence","industry":"Financial Services","lob":"Customer service and CX","region":"Indonesia","language":"Bahasa, English","summary":"An Indonesian digital bank halved onboarding drop-off with a Gemini assistant inside the app. Northbridge built the journey and the guardrails.","status":"live","validUntil":"2027-10-15","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"northbridge-digital-bank-onboarding.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, Retail","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a14":{"title":"Insurer — claims assistant on Gemini","partnerId":"meridian-vale","type":"Case study","usecase":"Gemini for customer experience","solution":"Artificial Intelligence","industry":"Financial Services","lob":"Customer service and CX","region":"Indonesia","language":"English","summary":"First notice of loss handled by a Gemini assistant for an Indonesian insurer, with Meridian Vale's claims accelerator underneath.","status":"live","validUntil":"2027-10-05","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"meridian-insurer-claims.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-01T00:00:00.000Z","verifiedAt":"2026-10-05T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a15":{"title":"Gen AI customer service for banks, architecture and joint proposition","partnerId":"harrowgate","type":"GSI–GCP architecture and joint proposition","usecase":"Gemini for customer experience","solution":"Artificial Intelligence","industry":"Financial Services","lob":"IT and engineering","region":"All APAC","language":"English","summary":"Contact-centre reference architecture on Vertex AI and Gemini, with the joint proposition for ASEAN banks.","status":"live","validUntil":"2027-10-15","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"harrowgate-genai-cx-architecture.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a16":{"title":"SAP on Google Cloud for manufacturers, solution deck","partnerId":"tessera","type":"Solution deck","usecase":"SAP","solution":"Infrastructure Modernization","industry":"Manufacturing","lob":"Finance","region":"All APAC","language":"English","summary":"Migration waves, RISE options and the commercial model for manufacturers moving SAP to Google Cloud.","status":"live","validUntil":"2027-07-28","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"tessera-sap-manufacturing-deck.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-07-24T00:00:00.000Z","verifiedAt":"2026-07-28T00:00:00.000Z","verifiedBy":"Partner manager, Infra","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a17":{"title":"Grocer — personalised offers on BigQuery","partnerId":"northbridge","type":"Solution flier / brochure","usecase":"Marketing Analytics","solution":"Data Analytics","industry":"Retail","lob":"Marketing","region":"Australia","language":"English","summary":"Flier on Northbridge's offers engine for grocers: BigQuery, Vertex AI and a weekly uplift readout for the marketing team.","status":"live","validUntil":"2027-10-15","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"northbridge-grocer-offers-flier.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, Retail","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a18":{"title":"Data Analytics for banks, solution deck","partnerId":"harrowgate","type":"Solution deck","usecase":"Data Lakehouse","solution":"Data Analytics","industry":"Financial Services","lob":"IT and engineering","region":"All APAC","language":"English","summary":"Lakehouse on BigQuery for banks: ingestion, governance and the first three analytics products. 20 slides.","status":"live","validUntil":"2027-06-03","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"harrowgate-data-fsi-deck.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-06-01T00:00:00.000Z","verifiedAt":"2026-06-03T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a19":{"title":"Data Analytics on Google Cloud, architecture and joint proposition","partnerId":"harrowgate","type":"GSI–GCP architecture and joint proposition","usecase":"Data Lakehouse","solution":"Data Analytics","industry":"All industries","lob":"IT and engineering","region":"All APAC","language":"English","summary":"Reference architecture for a lakehouse on BigQuery with Harrowgate's accelerators, and where the two teams hand off.","status":"live","validUntil":"2027-10-15","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"harrowgate-data-architecture.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a2":{"title":"Bank Kaliwangi — fraud analytics on BigQuery","partnerId":"harrowgate","type":"Case study","usecase":"Real-time Analytics","solution":"Data Analytics","industry":"Financial Services","lob":"Risk, security and compliance","region":"Indonesia","language":"English","summary":"Streaming fraud scoring on BigQuery and Vertex AI for a mid-size bank, alert latency down from hours to seconds. 14 slides.","status":"live","validUntil":"2027-03-31","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"bank-kaliwangi-fraud-analytics.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-06-01T00:00:00.000Z","verifiedAt":"2026-06-03T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a20":{"title":"Infrastructure Modernization, solution flier","partnerId":"harrowgate","type":"Solution flier / brochure","usecase":"Data Center Exits","solution":"Infrastructure Modernization","industry":"All industries","lob":"IT and engineering","region":"Singapore","language":"English","summary":"Two-page flier on Harrowgate's data-centre exit offer for Singapore enterprises.","status":"returned","validUntil":"2027-10-20","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"harrowgate-infra-flier.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-20T00:00:00.000Z","verifiedAt":null,"verifiedBy":null,"returnNote":"Missing the Google Cloud architecture page — add the reference architecture and resubmit","createdAt":"2026-10-20T00:00:00.000Z","updatedAt":"2026-10-24T00:00:00.000Z"},"a21":{"title":"Retail loyalty analytics deck, 2024","partnerId":"harrowgate","type":"Solution deck","usecase":"Business Intelligence","solution":"Data Analytics","industry":"Retail","lob":"Marketing","region":"Indonesia","language":"English","summary":"Loyalty analytics on BigQuery and Looker for Indonesian retailers. Numbers from 2024.","status":"live","validUntil":"2026-06-11","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"harrowgate-retail-loyalty-2024.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2025-06-05T00:00:00.000Z","verifiedAt":"2025-06-11T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2025-06-05T00:00:00.000Z","updatedAt":"2025-06-11T00:00:00.000Z"},"a22":{"title":"Indonesian grocer — loyalty analytics","partnerId":"harrowgate","type":"Case study","usecase":"Business Intelligence","solution":"Data Analytics","industry":"Retail","lob":"Marketing","region":"Indonesia","language":"English","summary":"An Indonesian grocery chain rebuilt its loyalty analytics on BigQuery and Looker, with Harrowgate running the data team for the first year.","status":"live","validUntil":"2027-09-12","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"harrowgate-grocer-loyalty.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-09-08T00:00:00.000Z","verifiedAt":"2026-09-12T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a23":{"title":"Data Analytics on Google Cloud, architecture and joint proposition","partnerId":"meridian-vale","type":"GSI–GCP architecture and joint proposition","usecase":"Data Lakehouse","solution":"Data Analytics","industry":"All industries","lob":"IT and engineering","region":"Singapore","language":"English","summary":"Reference architecture for a lakehouse on BigQuery with Meridian Vale's accelerators, plus the joint go-to-market story for ASEAN banks and insurers.","status":"pending","validUntil":"2027-10-21","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"meridian-data-architecture.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-21T00:00:00.000Z","verifiedAt":null,"verifiedBy":null,"returnNote":"","createdAt":"2026-10-21T00:00:00.000Z","updatedAt":"2026-10-21T00:00:00.000Z"},"a24":{"title":"Bank Nusantara — AI contact centre, v4","partnerId":"harrowgate","type":"Case study","usecase":"Gemini for customer experience","solution":"Artificial Intelligence","industry":"Financial Services","lob":"Customer service and CX","region":"Indonesia","language":"Bahasa, English","summary":"A top-5 Indonesian bank moved 60% of tier-1 queries to a Gemini-based assistant across Bahasa and English, with Harrowgate running the programme. Numbers refreshed to Q3 2026.","status":"pending","validUntil":"2027-10-26","extEvents":true,"extPublishing":true,"fileAssetId":null,"fileName":"bank-nusantara-ai-contact-centre-v4.pdf","fileType":"","version":4,"replacesId":"a1","submittedAt":"2026-10-26T00:00:00.000Z","verifiedAt":null,"verifiedBy":null,"returnNote":"","createdAt":"2026-10-26T00:00:00.000Z","updatedAt":"2026-10-26T00:00:00.000Z"},"a3":{"title":"AI for financial services, solution deck","partnerId":"harrowgate","type":"Solution deck","usecase":"Gemini for enterprise","solution":"Artificial Intelligence","industry":"Financial Services","lob":"IT and engineering","region":"All APAC","language":"English","summary":"Harrowgate's point of view on generative AI in banking and insurance, with the Google Cloud reference architecture and three anonymised outcomes. 22 slides.","status":"live","validUntil":"2027-03-31","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"harrowgate-ai-fsi-deck.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a4":{"title":"AI customer service, solution flier","partnerId":"meridian-vale","type":"Solution flier / brochure","usecase":"Gemini for customer experience","solution":"Artificial Intelligence","industry":"Financial Services","lob":"Customer service and CX","region":"Indonesia","language":"English","summary":"Two-page flier on Meridian Vale's customer-service accelerator for Indonesian banks, built on Google Cloud. Good leave-behind for a roundtable.","status":"live","validUntil":"2026-11-30","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"meridian-ai-customer-service-flier.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-01T00:00:00.000Z","verifiedAt":"2026-10-05T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a5":{"title":"Harrowgate on Google Cloud: AI, architecture and joint proposition","partnerId":"harrowgate","type":"GSI–GCP architecture and joint proposition","usecase":"Gemini for enterprise","solution":"Artificial Intelligence","industry":"All industries","lob":"IT and engineering","region":"All APAC","language":"English","summary":"Reference architecture and the joint go-to-market story: what Harrowgate adds on top of Vertex AI, Gemini and BigQuery, and where the two teams hand off.","status":"live","validUntil":"2027-01-31","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"harrowgate-gcp-ai-architecture.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a6":{"title":"Bank Nusantara customer story, 2-minute video","partnerId":"harrowgate","type":"Video","usecase":"Gemini for customer experience","solution":"Artificial Intelligence","industry":"Financial Services","lob":"Customer service and CX","region":"Indonesia","language":"Bahasa, English subtitles","summary":"Customer interview filmed in Jakarta, the bank's head of digital on the first year of the assistant.","status":"pending","validUntil":"2027-10-26","extEvents":true,"extPublishing":true,"fileAssetId":null,"fileName":"bank-nusantara-customer-story.mp4","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-26T00:00:00.000Z","verifiedAt":null,"verifiedBy":null,"returnNote":"","createdAt":"2026-10-26T00:00:00.000Z","updatedAt":"2026-10-26T00:00:00.000Z"},"a7":{"title":"Retail demand forecasting on Vertex AI","partnerId":"northbridge","type":"Case study","usecase":"Real-time Analytics","solution":"Data Analytics","industry":"Retail","lob":"Operations and supply chain","region":"Australia","language":"English","summary":"An Australian grocer cut stock-outs across 300 stores with a forecasting model on Vertex AI and BigQuery. Northbridge built and runs it.","status":"live","validUntil":"2027-09-30","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"northbridge-retail-forecasting.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-10-10T00:00:00.000Z","verifiedAt":"2026-10-15T00:00:00.000Z","verifiedBy":"Partner manager, Retail","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a8":{"title":"Data Center Exits, solution deck","partnerId":"tessera","type":"Solution deck","usecase":"Data Center Exits","solution":"Infrastructure Modernization","industry":"All industries","lob":"IT and engineering","region":"Singapore","language":"English","summary":"Tessera's exit playbook for Singapore enterprises: migration waves, landing zones and the commercial model. 18 slides.","status":"live","validUntil":"2026-12-31","extEvents":false,"extPublishing":false,"fileAssetId":null,"fileName":"tessera-dc-exit-deck.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-07-24T00:00:00.000Z","verifiedAt":"2026-07-28T00:00:00.000Z","verifiedBy":"Partner manager, Infra","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"},"a9":{"title":"Hospital group — patient scheduling assistant","partnerId":"meridian-vale","type":"Case study","usecase":"Gemini for customer experience","solution":"Artificial Intelligence","industry":"Healthcare and Life Sciences","lob":"Customer service and CX","region":"Thailand","language":"Thai, English","summary":"A Thai private hospital group took no-shows down with a Gemini scheduling assistant on LINE. Meridian Vale delivered in 14 weeks.","status":"live","validUntil":"2027-08-31","extEvents":true,"extPublishing":false,"fileAssetId":null,"fileName":"meridian-hospital-scheduling.pdf","fileType":"","version":1,"replacesId":null,"submittedAt":"2026-09-29T00:00:00.000Z","verifiedAt":"2026-10-02T00:00:00.000Z","verifiedBy":"Partner manager, FSI","returnNote":"","createdAt":"2026-10-10T00:00:00.000Z","updatedAt":"2026-10-15T00:00:00.000Z"}},"kits":{"k-fsi-roundtable":{"name":"FSI roundtable · Feb (example)","ownerId":"shared","note":"Jakarta · CMOs and CIOs · gen AI in customer service","items":["a1","a15","a4"],"createdAt":"2026-10-20T00:00:00.000Z","updatedAt":"2026-10-20T00:00:00.000Z"},"k-retail-anz":{"name":"Retail ANZ · Q1 (example)","ownerId":"shared","note":"Six-week campaign · data platform · joint content","items":["a7","a17","a19","a21"],"createdAt":"2026-10-02T00:00:00.000Z","updatedAt":"2026-10-19T00:00:00.000Z"}},"log":{"2026-10-seed":{"events":[{"t":"2026-10-02T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"contact centre AI for banks in Indonesia","usecase":"Gemini for customer experience","industry":"Financial Services","region":"Indonesia","results":5,"partners":["harrowgate","meridian-vale","northbridge"]},{"t":"2026-10-02T05:00:00.000Z","kind":"download","role":"field","assetId":"a1","partnerId":"harrowgate","kitId":null},{"t":"2026-10-03T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"retail analytics Australia","solution":"Data Analytics","industry":"Retail","region":"Australia","results":2,"partners":["northbridge"]},{"t":"2026-10-03T05:00:00.000Z","kind":"download","role":"field","assetId":"a1","partnerId":"harrowgate","kitId":"k-fsi-roundtable"},{"t":"2026-10-03T05:00:00.000Z","kind":"download","role":"field","assetId":"a3","partnerId":"harrowgate","kitId":null},{"t":"2026-10-06T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"Harrowgate decks","partner":"harrowgate","type":"Solution deck","results":3,"partners":["harrowgate"]},{"t":"2026-10-06T05:00:00.000Z","kind":"download","role":"field","assetId":"a1","partnerId":"harrowgate","kitId":null},{"t":"2026-10-06T05:00:00.000Z","kind":"download","role":"field","assetId":"a3","partnerId":"harrowgate","kitId":"k-fsi-roundtable"},{"t":"2026-10-06T05:00:00.000Z","kind":"download","role":"field","assetId":"a5","partnerId":"harrowgate","kitId":null},{"t":"2026-10-07T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"government data analytics Indonesia","solution":"Data Analytics","industry":"Government","region":"Indonesia","results":0,"partners":[]},{"t":"2026-10-07T05:00:00.000Z","kind":"download","role":"field","assetId":"a1","partnerId":"harrowgate","kitId":"k-fsi-roundtable"},{"t":"2026-10-07T05:00:00.000Z","kind":"download","role":"field","assetId":"a3","partnerId":"harrowgate","kitId":null},{"t":"2026-10-07T05:00:00.000Z","kind":"download","role":"field","assetId":"a5","partnerId":"harrowgate","kitId":"k-fsi-roundtable"},{"t":"2026-10-07T05:00:00.000Z","kind":"download","role":"field","assetId":"a4","partnerId":"meridian-vale","kitId":null},{"t":"2026-10-08T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"insurance claims Indonesia","industry":"Financial Services","region":"Indonesia","results":3,"partners":["meridian-vale","harrowgate","northbridge"]},{"t":"2026-10-08T05:00:00.000Z","kind":"download","role":"field","assetId":"a1","partnerId":"harrowgate","kitId":null},{"t":"2026-10-08T05:00:00.000Z","kind":"download","role":"field","assetId":"a3","partnerId":"harrowgate","kitId":"k-fsi-roundtable"},{"t":"2026-10-08T05:00:00.000Z","kind":"download","role":"field","assetId":"a5","partnerId":"harrowgate","kitId":null},{"t":"2026-10-08T05:00:00.000Z","kind":"download","role":"field","assetId":"a4","partnerId":"meridian-vale","kitId":"k-fsi-roundtable"},{"t":"2026-10-08T05:00:00.000Z","kind":"download","role":"field","assetId":"a7","partnerId":"northbridge","kitId":null},{"t":"2026-10-09T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"SAP migration Philippines","usecase":"SAP","region":"Philippines","results":0,"partners":[]},{"t":"2026-10-09T05:00:00.000Z","kind":"download","role":"field","assetId":"a1","partnerId":"harrowgate","kitId":"k-fsi-roundtable"},{"t":"2026-10-09T05:00:00.000Z","kind":"download","role":"field","assetId":"a4","partnerId":"meridian-vale","kitId":null},{"t":"2026-10-09T05:00:00.000Z","kind":"download","role":"field","assetId":"a7","partnerId":"northbridge","kitId":"k-fsi-roundtable"},{"t":"2026-10-09T05:00:00.000Z","kind":"download","role":"field","assetId":"a13","partnerId":"northbridge","kitId":null},{"t":"2026-10-10T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"healthcare AI","solution":"Artificial Intelligence","industry":"Healthcare and Life Sciences","results":1,"partners":["meridian-vale"]},{"t":"2026-10-10T05:00:00.000Z","kind":"download","role":"field","assetId":"a7","partnerId":"northbridge","kitId":null},{"t":"2026-10-10T05:00:00.000Z","kind":"download","role":"field","assetId":"a13","partnerId":"northbridge","kitId":"k-fsi-roundtable"},{"t":"2026-10-10T05:00:00.000Z","kind":"download","role":"field","assetId":"a8","partnerId":"tessera","kitId":null},{"t":"2026-10-13T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"security operations telco","usecase":"Agentic SOC","industry":"Telecommunications","results":1,"partners":["northbridge"]},{"t":"2026-10-13T05:00:00.000Z","kind":"download","role":"field","assetId":"a7","partnerId":"northbridge","kitId":"k-fsi-roundtable"},{"t":"2026-10-13T05:00:00.000Z","kind":"download","role":"field","assetId":"a8","partnerId":"tessera","kitId":"k-fsi-roundtable"},{"t":"2026-10-13T05:00:00.000Z","kind":"download","role":"field","assetId":"a12","partnerId":"calyx","kitId":null},{"t":"2026-10-14T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"government data analytics Indonesia","solution":"Data Analytics","industry":"Government","region":"Indonesia","results":0,"partners":[]},{"t":"2026-10-14T05:00:00.000Z","kind":"download","role":"field","assetId":"a14","partnerId":"meridian-vale","kitId":null},{"t":"2026-10-15T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"Meridian Vale case studies","partner":"meridian-vale","type":"Case study","results":2,"partners":["meridian-vale"]},{"t":"2026-10-15T05:00:00.000Z","kind":"download","role":"field","assetId":"a14","partnerId":"meridian-vale","kitId":"k-fsi-roundtable"},{"t":"2026-10-15T05:00:00.000Z","kind":"download","role":"field","assetId":"a15","partnerId":"harrowgate","kitId":null},{"t":"2026-10-15T08:00:00.000Z","kind":"approve","role":"pm","assetId":"a15","partnerId":"harrowgate","days":2},{"t":"2026-10-16T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"data centre exit Singapore","usecase":"Data Center Exits","region":"Singapore","results":1,"partners":["tessera"]},{"t":"2026-10-16T05:00:00.000Z","kind":"download","role":"field","assetId":"a15","partnerId":"harrowgate","kitId":"k-fsi-roundtable"},{"t":"2026-10-17T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"government data analytics Indonesia","solution":"Data Analytics","industry":"Government","region":"Indonesia","results":0,"partners":[]},{"t":"2026-10-20T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"contact centre AI for banks in Indonesia","usecase":"Gemini for customer experience","industry":"Financial Services","region":"Indonesia","results":5,"partners":["harrowgate","meridian-vale","northbridge"]},{"t":"2026-10-21T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"retail analytics Australia","solution":"Data Analytics","industry":"Retail","region":"Australia","results":2,"partners":["northbridge"]},{"t":"2026-10-22T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"Harrowgate decks","partner":"harrowgate","type":"Solution deck","results":3,"partners":["harrowgate"]},{"t":"2026-10-23T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"government data analytics Indonesia","solution":"Data Analytics","industry":"Government","region":"Indonesia","results":0,"partners":[]},{"t":"2026-10-24T02:00:00.000Z","kind":"ask","role":"field","source":"model","text":"insurance claims Indonesia","industry":"Financial Services","region":"Indonesia","results":3,"partners":["meridian-vale","harrowgate","northbridge"]},{"t":"2026-10-24T08:00:00.000Z","kind":"return","role":"pm","assetId":"a20","partnerId":"harrowgate"}],"updatedAt":"2026-10-24T08:00:00.000Z","note":"Example history for the prototype"}},"partners":{"calyx":{"createdAt":"2026-08-01T00:00:00.000Z","name":"Calyx Partners","line":"Public sector and education analytics, Singapore and Malaysia","contact":"Partner marketing, Singapore","managerName":"Partner manager, Public sector","claims":{"solutions":["Data Analytics"],"industries":["Government","Education"]},"status":"active"},"harrowgate":{"createdAt":"2026-08-01T00:00:00.000Z","name":"Harrowgate Consulting","line":"Banking and payments transformation on Google Cloud across ASEAN","contact":"Partner marketing lead, Indonesia · replies within a day","managerName":"Partner manager, FSI","claims":{"solutions":["Artificial Intelligence","Data Analytics","Infrastructure Modernization"],"industries":["Financial Services","Retail","Government"]},"status":"active"},"meridian-vale":{"createdAt":"2026-08-01T00:00:00.000Z","name":"Meridian Vale","line":"Data and AI advisory for financial services and insurance, Southeast Asia","contact":"Partner marketing lead, Singapore · replies within 3 days","managerName":"Partner manager, FSI","claims":{"solutions":["Artificial Intelligence","Data Analytics"],"industries":["Financial Services","Healthcare and Life Sciences"]},"status":"active"},"northbridge":{"createdAt":"2026-08-01T00:00:00.000Z","name":"Northbridge Digital","line":"Digital engineering and data for retail, telco and digital banks","contact":"Partner marketing lead, Jakarta","managerName":"Partner manager, Retail","claims":{"solutions":["Artificial Intelligence","Data Analytics","Security"],"industries":["Retail","Telecommunications","Financial Services"]},"status":"active"},"orrin":{"createdAt":"2026-08-01T00:00:00.000Z","name":"Orrin & Co","line":"Insurance specialist, actuarial data platforms","contact":"—","managerName":"Partner manager, FSI","claims":{"solutions":["Data Analytics"],"industries":["Financial Services"]},"status":"invited"},"tessera":{"createdAt":"2026-08-01T00:00:00.000Z","name":"Tessera Advisory","line":"Strategy-led transformation, strongest on infrastructure and operating models","contact":"Partner marketing, Singapore","managerName":"Partner manager, Infra","claims":{"solutions":["Infrastructure Modernization","Application Modernization"],"industries":["Manufacturing"]},"status":"active"}},"requests":{"r1":{"partnerId":"harrowgate","assetId":"a1","kind":"update","text":"A local-language version — Bahasa-only, for a CMO roundtable in Jakarta, mid-Feb","fromLabel":"A field marketer","status":"open","createdAt":"2026-10-27T03:00:00.000Z"}},"settings":{"main":{"digestDay":1,"expiryWarnDays":30,"reviewTargetDays":5,"nudgeDay":3,"escalateDays":60}},"stats":{"calyx":{"downloads":{"a12":1},"kits":{},"missed":3,"updatedAt":"2026-10-24T08:00:00.000Z"},"harrowgate":{"downloads":{"a1":6,"a3":4,"a5":3,"a15":2},"kits":{"a1":1,"a15":1,"a19":1,"a21":1},"missed":4,"updatedAt":"2026-10-24T08:00:00.000Z"},"meridian-vale":{"downloads":{"a4":3,"a14":2},"kits":{"a4":1},"missed":3,"updatedAt":"2026-10-24T08:00:00.000Z"},"northbridge":{"downloads":{"a7":4,"a13":2},"kits":{"a7":1,"a17":1},"missed":3,"updatedAt":"2026-10-24T08:00:00.000Z"},"orrin":{"downloads":{},"kits":{},"missed":0,"updatedAt":"2026-10-24T08:00:00.000Z"},"tessera":{"downloads":{"a8":2},"kits":{},"missed":1,"updatedAt":"2026-10-24T08:00:00.000Z"}}};
+  const listeners = []; const copy = x => JSON.parse(JSON.stringify(x));
+  const split = p => { const i = p.lastIndexOf('/'); return [p.slice(0, i), p.slice(i + 1)]; };
+  const snapDoc = (col, id) => ({ id, exists: !!(seeds[col] && seeds[col][id]), data: () => seeds[col] && seeds[col][id] ? copy(seeds[col][id]) : undefined, metadata: {} });
+  const fire = () => listeners.forEach(l => { try { l(); } catch (e) { } });
+  const newId = () => 'd' + Math.random().toString(36).slice(2, 9);
+  const db = {
+    doc(p) { const [col, id] = split(p); return { id, path: p, get: async () => snapDoc(col, id), set: async d => { (seeds[col] = seeds[col] || {})[id] = copy(d); fire(); }, update: async d => { if (!seeds[col] || !seeds[col][id]) throw { code: 'invalid_argument', message: 'missing' }; Object.assign(seeds[col][id], copy(d)); fire(); }, delete: async () => { if (seeds[col]) delete seeds[col][id]; fire(); }, onSnapshot(cb) { const f = () => cb(snapDoc(col, id)); listeners.push(f); setTimeout(f, 0); return () => { const i = listeners.indexOf(f); if (i > -1) listeners.splice(i, 1); }; } }; },
+    collection(col) { return { path: col, doc(id) { return db.doc(col + '/' + (id || newId())); }, add: async d => { const id = newId(); (seeds[col] = seeds[col] || {})[id] = copy(d); fire(); return db.doc(col + '/' + id); }, onSnapshot(cb) { const f = () => cb({ docs: Object.keys(seeds[col] || {}).map(id => snapDoc(col, id)), size: 0, empty: false, docChanges: () => [], metadata: {} }); listeners.push(f); setTimeout(f, 0); return () => { const i = listeners.indexOf(f); if (i > -1) listeners.splice(i, 1); }; } }; }
+  };
+  const people = { u_demo: 'You (demo)', u_pat: 'Pat Partner · Harrowgate', u_mei: 'Mei Tan · Meridian Vale', u_arjun: 'Arjun Rao · Northbridge' };
+  const prof = id => ({ id, name: people[id] || '', avatarUrl: '', color: '#1a73e8', email: null, isMe: id === 'u_demo' });
+  const user = { me: async () => ({ id: 'u_demo', name: 'Demo viewer', canEdit: true, isOwner: true, email: null, avatarUrl: '', color: '#1a73e8' }), id: async () => 'u_demo', isOwner: async () => true, canEdit: async () => true, can: async () => true, profiles: async ids => { const o = {}; [].concat(ids).forEach(id => o[id] = prof(id)); return o; }, search: async q => Object.keys(people).filter(id => id !== 'u_demo' && (!q || people[id].toLowerCase().includes(String(q).toLowerCase()))).map(prof) };
+  const downloads = { save: async ({ filename, data }) => { const url = URL.createObjectURL(data instanceof Blob ? data : new Blob([data])); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000); return { status: 'saved' }; } };
+  window.claude = { use: async n => ({ db, user, downloads })[n] || null };
+  document.addEventListener('DOMContentLoaded', () => {
+    const b = document.createElement('div');
+    b.setAttribute('style', 'position:fixed;left:0;right:0;bottom:0;z-index:99;font:12px/1.4 Figtree,system-ui,sans-serif;padding:7px 16px;background:#1f1f1f;color:#fff;text-align:center');
+    b.innerHTML = 'Demo edition · sample data · changes last until you reload · no sign-in, so every role is open here; the hosted hub gates them by account · the ask box uses the rules reader in this edition, Gemini in the hub';
+    document.body.appendChild(b); document.body.style.paddingBottom = '40px';
+  });
+})();
+</script>
+<script>
+(function () {
+'use strict';
+// ───────────────────────── access model ─────────────────────────────────────────────────────────────────────────
+// Who you are comes from how the page is shared with you, not from anything the page lets you pick:
+//   Google side (field marketers, partner managers)  = Editor access  = store level "admin". They choose a role in the header
+//                                                      and may walk the partner persona for demos.
+//   Partner marketers                                 = Contributor access = store level "interact". No switcher. Their partner
+//                                                      comes from roles/<their id>, written only by the Google side.
+//   Anyone else (Viewer, outside)                      reads nothing and sees the not-linked screen.
+// The store's access rules (declared at publish, enforced by the platform, not by this script) make the asks log, kits, the
+// roles list and the canonical requests unreadable below "admin". A partner account can read: partners, assets, settings,
+// stats (counts only) and its own inbox/<id>. What a field marketer searches for is never written to a path a partner can read.
+// In the build the same split is Google SSO vs partner SSO on the server; the collections and rules below are the spec for it.
+// ───────────────────────── taxonomy (Google Cloud's own lists, synced quarterly in the build) ─────────────────────────
+const SOLUTIONS = {
+  'Application Modernization': ['Google Cloud Modernize', 'Application Modernization with AI', 'Mainframe Modernization', 'Database Modernization', 'Data Lake Modernization', 'Data Warehouse Modernization', 'APIs', 'Platform Engineering', 'DevOps Best Practices', 'SRE Principles'],
+  'Artificial Intelligence': ['Gemini for customer experience', 'Gemini for enterprise', 'AI Commerce Search', 'Google Cloud with Gemini', 'Physical AI'],
+  'APIs and Applications': ['New Business Channels Using APIs', 'Unlocking Legacy Applications Using APIs', 'Open Banking APIx'],
+  'Data Analytics': ['Data Migration', 'Data Lakehouse', 'Real-time Analytics', 'Marketing Analytics', 'Datasets', 'Business Intelligence', 'Data Analytics Agents', 'Geospatial Analytics', 'Data Science'],
+  'Databases': ['Database Migration', 'Databases for Games', 'Google Cloud Databases', 'Migrate Oracle workloads to Google Cloud', 'Open Source Databases', 'SQL Server on Google Cloud', 'Gemini for Databases'],
+  'Infrastructure Modernization': ['Rapid Migration and Modernization Program (RaMP)', 'Data Center Exits', 'Application Modernization and Migration', 'Database Modernization and Migration', 'Cross-Cloud Networking', 'High Performance Computing (HPC)', 'VMware', 'SAP', 'Windows'],
+  'Productivity and Collaboration': ['Google Workspace', 'Google Workspace Essentials', 'Cloud Identity', 'Chrome Enterprise'],
+  'Security': ['Agentic SOC', 'Web App and API Protection', 'Security and Resilience Framework', 'Risk and compliance as code (RCaC)', 'Software Supply Chain Security', 'Security Foundation', 'Google Cloud Cybershield'],
+  'Startups and SMB': ['Startup Program', 'Small and Medium Business', 'Software as a Service']
+};
+const USECASES = Object.keys(SOLUTIONS).flatMap(s => SOLUTIONS[s]);
+const SOLUTION_OF = {}; Object.keys(SOLUTIONS).forEach(s => SOLUTIONS[s].forEach(u => SOLUTION_OF[u] = s));
+const INDUSTRIES = ['Financial Services', 'Retail', 'Consumer Packaged Goods', 'Healthcare and Life Sciences', 'Media and Entertainment', 'Telecommunications', 'Games', 'Manufacturing', 'Supply Chain and Logistics', 'Government', 'Education', 'Energy', 'All industries'];
+const LOBS = ['Customer service and CX', 'Marketing', 'Sales', 'Finance', 'HR', 'IT and engineering', 'Operations and supply chain', 'Risk, security and compliance'];
+const REGIONS = ['Singapore', 'Indonesia', 'Malaysia', 'Thailand', 'Vietnam', 'Philippines', 'Australia', 'New Zealand', 'Japan', 'Korea', 'India', 'All APAC'];
+const TYPES = ['Solution deck', 'Case study', 'Solution flier / brochure', 'GSI–GCP architecture and joint proposition', 'Video'];
+const PLURAL = { 'Solution deck': 'Solution decks', 'Case study': 'Case studies', 'Solution flier / brochure': 'Fliers and brochures', 'GSI–GCP architecture and joint proposition': 'Architecture and joint propositions', 'Video': 'Videos' };
+const SHORT = { 'Solution deck': 'deck', 'Case study': 'case study', 'Solution flier / brochure': 'flier', 'GSI–GCP architecture and joint proposition': 'architecture', 'Video': 'video' };
+const LOB_DEFAULT = { 'Gemini for customer experience': 'Customer service and CX', 'AI Commerce Search': 'Marketing', 'Marketing Analytics': 'Marketing', 'Business Intelligence': 'Finance', 'Open Banking APIx': 'IT and engineering', 'Agentic SOC': 'Risk, security and compliance', 'Security Foundation': 'Risk, security and compliance', 'Google Workspace': 'HR', 'SAP': 'Finance', 'Real-time Analytics': 'Operations and supply chain' };
+const KEYS = {
+  usecase: [['contact cent', 'Gemini for customer experience'], ['customer service', 'Gemini for customer experience'], ['customer experience', 'Gemini for customer experience'], ['chatbot', 'Gemini for customer experience'], ['assistant', 'Gemini for customer experience'], ['knowledge', 'Gemini for enterprise'], ['copilot', 'Gemini for enterprise'], ['commerce search', 'AI Commerce Search'], ['fraud', 'Real-time Analytics'], ['real-time', 'Real-time Analytics'], ['realtime', 'Real-time Analytics'], ['forecast', 'Real-time Analytics'], ['business intelligence', 'Business Intelligence'], ['looker', 'Business Intelligence'], ['reporting', 'Business Intelligence'], ['lakehouse', 'Data Lakehouse'], ['data center', 'Data Center Exits'], ['data centre', 'Data Center Exits'], ['mainframe', 'Mainframe Modernization'], ['sap', 'SAP'], ['vmware', 'VMware'], ['oracle', 'Migrate Oracle workloads to Google Cloud'], ['soc', 'Agentic SOC'], ['security operations', 'Agentic SOC'], ['workspace', 'Google Workspace'], ['open banking', 'Open Banking APIx']],
+  solution: [['gen ai', 'Artificial Intelligence'], ['genai', 'Artificial Intelligence'], ['generative', 'Artificial Intelligence'], ['gemini', 'Artificial Intelligence'], ['ai', 'Artificial Intelligence'], ['analytics', 'Data Analytics'], ['data', 'Data Analytics'], ['database', 'Databases'], ['infrastructure', 'Infrastructure Modernization'], ['migration', 'Infrastructure Modernization'], ['moderni', 'Application Modernization'], ['security', 'Security'], ['api', 'APIs and Applications'], ['startup', 'Startups and SMB']],
+  industry: [['bank', 'Financial Services'], ['financial', 'Financial Services'], ['fsi', 'Financial Services'], ['insur', 'Financial Services'], ['payments', 'Financial Services'], ['retail', 'Retail'], ['grocer', 'Retail'], ['cpg', 'Consumer Packaged Goods'], ['consumer goods', 'Consumer Packaged Goods'], ['hospital', 'Healthcare and Life Sciences'], ['health', 'Healthcare and Life Sciences'], ['pharma', 'Healthcare and Life Sciences'], ['media', 'Media and Entertainment'], ['telco', 'Telecommunications'], ['telecom', 'Telecommunications'], ['game', 'Games'], ['manufactur', 'Manufacturing'], ['logistics', 'Supply Chain and Logistics'], ['supply chain', 'Supply Chain and Logistics'], ['government', 'Government'], ['public sector', 'Government'], ['education', 'Education'], ['universit', 'Education'], ['energy', 'Energy'], ['utilit', 'Energy']],
+  region: [['indonesia', 'Indonesia'], ['jakarta', 'Indonesia'], ['singapore', 'Singapore'], ['malaysia', 'Malaysia'], ['kuala', 'Malaysia'], ['thailand', 'Thailand'], ['bangkok', 'Thailand'], ['vietnam', 'Vietnam'], ['philippines', 'Philippines'], ['manila', 'Philippines'], ['australia', 'Australia'], ['sydney', 'Australia'], ['melbourne', 'Australia'], ['new zealand', 'New Zealand'], ['japan', 'Japan'], ['korea', 'Korea'], ['india', 'India'], ['apac', 'All APAC'], ['asean', 'All APAC'], ['asia', 'All APAC']],
+  lob: [['cfo', 'Finance'], ['finance', 'Finance'], ['cmo', 'Marketing'], ['marketing', 'Marketing'], ['sales', 'Sales'], ['hr ', 'HR'], ['cio', 'IT and engineering'], ['cto', 'IT and engineering'], ['ciso', 'Risk, security and compliance'], ['compliance', 'Risk, security and compliance'], ['operations', 'Operations and supply chain'], ['coo', 'Operations and supply chain'], ['cx', 'Customer service and CX']],
+  type: [['case stud', 'Case study'], ['deck', 'Solution deck'], ['slides', 'Solution deck'], ['presentation', 'Solution deck'], ['flier', 'Solution flier / brochure'], ['flyer', 'Solution flier / brochure'], ['brochure', 'Solution flier / brochure'], ['one-pager', 'Solution flier / brochure'], ['video', 'Video'], ['architecture', 'GSI–GCP architecture and joint proposition'], ['joint proposition', 'GSI–GCP architecture and joint proposition']]
+};
+const ROLES = [{ id: 'field', label: 'Field marketer · Google' }, { id: 'pm', label: 'Partner manager · Google' }];
+const FILE_TYPES = { pdf: 'application/pdf', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', mp4: 'video/mp4', webm: 'video/webm', csv: 'text/csv', md: 'text/markdown', json: 'application/json', txt: 'text/plain' };
+
+// ───────────────────────── state ─────────────────────────
+const S = {
+  cap: { db: null, user: null, sample: null, assets: null, downloads: null }, capReady: false, storeReady: false, storeFailed: false,
+  uid: null, meName: '', canEdit: false, role: null, route: 'ask', roles: [], stats: {}, profiles: {}, inboxes: {}, assign: { q: '', hits: [], partnerId: null },
+  partners: [], assets: [], kits: [], requests: [], logs: [], settings: { digestDay: 1, expiryWarnDays: 30, reviewTargetDays: 5, nudgeDay: 3, escalateDays: 60 },
+  ask: { draft: '', facets: null, reading: '', source: '', busy: false, showPending: false, requested: false, kitOpen: false },
+  kitId: null, form: {}, ui: { libTab: 'All', partnerTab: 'All', queueSel: null, returning: false, toast: '', kitShared: false, confirm: null },
+  ai: { disabled: false, lastError: '' }
+};
+try { S.role = JSON.parse(localStorage.getItem('gpm.role') || 'null'); S.kitId = localStorage.getItem('gpm.kit') || null; } catch (e) { }
+
+// ───────────────────────── utilities ─────────────────────────
+const h = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+const nowIso = () => new Date().toISOString();
+const todayStr = () => new Date().toISOString().slice(0, 10);
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'file';
+const fmtDate = d => { if (!d) return '—'; const x = new Date(d); if (isNaN(x)) return String(d); return x.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: x.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }); };
+const daysUntil = d => { if (!d) return Infinity; const x = new Date(d + (d.length === 10 ? 'T00:00:00' : '')); return Math.ceil((x - new Date()) / 86400000); };
+const daysSince = d => { if (!d) return 0; return Math.floor((new Date() - new Date(d)) / 86400000); };
+const addMonths = (d, n) => { const x = new Date(d); x.setMonth(x.getMonth() + n); return x.toISOString().slice(0, 10); };
+const byId = (list, id) => list.find(x => x.id === id);
+const partner = id => byId(S.partners, id);
+const partnerName = id => (partner(id) || {}).name || '—';
+const canon = (v, list) => { if (v == null) return null; const t = String(v).trim().toLowerCase(); return list.find(x => x.toLowerCase() === t) || null; };
+const num = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+function toast(msg) { S.ui.toast = msg; render(); clearTimeout(toast.t); toast.t = setTimeout(() => { S.ui.toast = ''; render(); }, 2600); }
+
+// ───────────────────────── derived ─────────────────────────
+function effStatus(a) {
+  if (a.status !== 'live') return a.status;
+  const d = daysUntil(a.validUntil);
+  if (d < 0) return 'expired';
+  if (d <= (S.settings.expiryWarnDays || 30)) return 'expiring';
+  return 'live';
+}
+const searchable = a => { const s = effStatus(a); return s === 'live' || s === 'expiring'; };
+function expectedFor(p) {
+  const cells = [];
+  const claims = p.claims || { solutions: [], industries: [] };
+  (claims.solutions || []).forEach(s => ['Solution deck', 'Solution flier / brochure', 'GSI–GCP architecture and joint proposition'].forEach(t => cells.push({ label: SHORT[t] + ' · ' + s, type: t, solution: s })));
+  (claims.industries || []).forEach(i => cells.push({ label: 'case study · ' + i, type: 'Case study', industry: i }));
+  cells.push({ label: 'video', type: 'Video' });
+  const mine = S.assets.filter(a => a.partnerId === p.id && a.status !== 'archived');
+  cells.forEach(c => {
+    const hits = mine.filter(a => a.type === c.type && (!c.solution || a.solution === c.solution) && (!c.industry || a.industry === c.industry || a.industry === 'All industries'));
+    const st = hits.map(effStatus);
+    c.state = st.includes('live') ? 'live' : st.includes('expiring') ? 'expiring' : st.includes('pending') ? 'pending' : st.includes('returned') ? 'returned' : 'missing';
+    c.count = st.filter(x => x === 'live' || x === 'expiring').length;
+  });
+  return cells;
+}
+const kitsMine = () => S.kits.filter(k => k.ownerId === S.uid || k.ownerId === 'shared').sort((a, b) => (a.ownerId === 'shared') - (b.ownerId === 'shared') || (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+const kitsOwn = () => S.kits.filter(k => k.ownerId === S.uid && S.uid).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+function currentKit() { const own = kitsOwn(); return byId(own, S.kitId) || own[0] || null; }
+const events = () => S.logs.flatMap(l => (l.events || []).map(e => Object.assign({}, e)));
+// Partners cannot read kits or the log (access rules). Their numbers come from per-partner counters the Google side writes.
+const statsOf = pid => S.stats[pid] || { downloads: {}, kits: {}, missed: 0 };
+const inKitsCount = id => { const a = byId(S.assets, id); if (S.canEdit) return S.kits.filter(k => (k.items || []).includes(id)).length; return a ? (statsOf(a.partnerId).kits || {})[id] || 0 : 0; };
+const downloadsOf = id => { const a = byId(S.assets, id); return a ? (statsOf(a.partnerId).downloads || {})[id] || 0 : 0; };
+async function bump(partnerId, field, key, delta) {
+  if (!S.cap.db || !S.canEdit || !partnerId) return;
+  try { const ref = S.cap.db.doc('stats/' + partnerId); const snap = await ref.get(); const cur = snap.exists ? snap.data() : { downloads: {}, kits: {}, missed: 0 }; if (key) { cur[field] = Object.assign({}, cur[field]); cur[field][key] = Math.max(0, (cur[field][key] || 0) + delta); } else cur[field] = Math.max(0, (cur[field] || 0) + delta); cur.updatedAt = nowIso(); await ref.set(cur); } catch (e) { }
+}
+
+// ───────────────────────── AI adapter ─────────────────────────
+// In this prototype the box is read by the artifact's own model (the viewer's Claude account) through `sample`.
+// In the build the same prompt and JSON contract go to Gemini on Vertex AI:
+//   POST https://{region}-aiplatform.googleapis.com/v1/projects/{p}/locations/{region}/publishers/google/models/gemini-2.5-flash:generateContent
+//   { contents: [{ role: "user", parts: [{ text: PROMPT }] }],
+//     generationConfig: { responseMimeType: "application/json", responseSchema: INTERPRET_SCHEMA, temperature: 0 } }
+// Retrieval and ordering stay in code (below). The model reads the ask, it never ranks.
+const INTERPRET_SCHEMA = { type: 'object', properties: { intent: { type: 'string', enum: ['partner_assets', 'find_partners'] }, partner: { type: 'string', nullable: true }, use_case: { type: 'string', nullable: true }, solution: { type: 'string', nullable: true }, industry: { type: 'string', nullable: true }, lob: { type: 'string', nullable: true }, region: { type: 'string', nullable: true }, asset_type: { type: 'string', nullable: true }, keywords: { type: 'array', items: { type: 'string' } }, reading: { type: 'string' } }, required: ['intent', 'keywords', 'reading'] };
+function interpretPrompt(text) {
+  return 'You read requests from Google Cloud field marketers who want GSI partner marketing collateral. Map the request onto the taxonomy below and reply with ONLY a JSON object:\n' +
+    '{"intent":"partner_assets"|"find_partners","partner":string|null,"use_case":string|null,"solution":string|null,"industry":string|null,"lob":string|null,"region":string|null,"asset_type":string|null,"keywords":[string],"reading":string}\n' +
+    'Rules: intent is partner_assets only when the request names one of the partners, else find_partners. Use the exact spelling from the lists; leave a field null rather than guess. Prefer use_case; set solution only when no use case fits. Map synonyms (bank, banking, insurer → Financial Services; Jakarta → Indonesia; contact centre, chatbot, customer service → Gemini for customer experience; gen AI, generative AI → Artificial Intelligence; CFO → Finance; CMO → Marketing). keywords holds terms you could not map. reading is one short sentence restating what is being asked for.\n' +
+    'Partners: ' + S.partners.map(p => p.name).join('; ') + '\n' +
+    'Use cases (grouped by solution): ' + Object.keys(SOLUTIONS).map(s => s + ': ' + SOLUTIONS[s].join(', ')).join(' | ') + '\n' +
+    'Industries: ' + INDUSTRIES.join(', ') + '\nLines of business: ' + LOBS.join(', ') + '\nRegions: ' + REGIONS.join(', ') + '\nAsset types: ' + TYPES.join(', ') + '\n' +
+    'Request: """' + text.slice(0, 600) + '"""';
+}
+function normalizeModel(o) {
+  if (!o || typeof o !== 'object') return null;
+  const pName = o.partner ? S.partners.find(p => p.name.toLowerCase() === String(o.partner).toLowerCase() || String(o.partner).toLowerCase().includes(p.name.toLowerCase().split(' ')[0])) : null;
+  const f = { partner: pName ? pName.id : null, usecase: canon(o.use_case, USECASES), solution: canon(o.solution, Object.keys(SOLUTIONS)), industry: canon(o.industry, INDUSTRIES), lob: canon(o.lob, LOBS), region: canon(o.region, REGIONS), type: canon(o.asset_type, TYPES), words: Array.isArray(o.keywords) ? o.keywords.map(String).slice(0, 5) : [], reading: typeof o.reading === 'string' ? o.reading.slice(0, 160) : '' };
+  if (f.usecase) f.solution = SOLUTION_OF[f.usecase];
+  if (f.partner || f.usecase || f.solution || f.industry || f.region || f.type || f.lob) f.words = [];
+  return f;
+}
+function rulesParse(text) {
+  const t = ' ' + text.toLowerCase().replace(/[^a-z0-9\- ]/g, ' ').replace(/\s+/g, ' ') + ' ';
+  const find = (key, bounded) => { for (const [k, v] of KEYS[key]) { if (bounded ? t.indexOf(' ' + k) !== -1 : t.indexOf(k) !== -1) return v; } return null; };
+  const p = S.partners.find(p => t.indexOf(p.name.toLowerCase().split(' ')[0]) !== -1);
+  const f = { partner: p ? p.id : null, usecase: find('usecase', false), solution: null, industry: find('industry', false), lob: find('lob', false), region: find('region', false), type: find('type', false), words: [], reading: '' };
+  f.solution = f.usecase ? SOLUTION_OF[f.usecase] : find('solution', true);
+  if (!f.partner && !f.usecase && !f.solution && !f.industry && !f.region && !f.type && !f.lob) f.words = text.toLowerCase().split(/\s+/).filter(Boolean).slice(0, 6);
+  return f;
+}
+async function interpret(text) {
+  const rules = rulesParse(text);
+  S.ask.facets = rules; S.ask.source = 'rules'; S.ask.reading = ''; S.ask.requested = false; S.ask.busy = !!(S.cap.sample && !S.ai.disabled);
+  render();
+  if (!S.ask.busy) { logEvent('ask', askLogData(text)); return; }
+  const myText = text;
+  try {
+    const sample = S.cap.sample; let out;
+    if (typeof sample.json === 'function') out = await sample.json(interpretPrompt(text), { modelTier: 'quick' });
+    else { const r = await sample(interpretPrompt(text), { modelTier: 'quick' }); const m = r.text.match(/\{[\s\S]*\}/); out = m ? JSON.parse(m[0]) : null; }
+    const f = normalizeModel(out);
+    if (S.ask.draft !== myText) return;
+    if (f) {
+      // the model's reading wins, except where rules matched a partner by name and the model dropped it,
+      // or the model returned nothing usable at all
+      if (!f.partner && rules.partner) { f.partner = rules.partner; f.words = []; }
+      const empty = !f.partner && !f.usecase && !f.solution && !f.industry && !f.region && !f.type && !f.lob && !f.words.length;
+      S.ask.facets = empty ? rules : f; S.ask.source = empty ? 'rules' : 'model'; S.ask.reading = f.reading;
+    }
+  } catch (e) {
+    S.ai.lastError = (e && e.code) || 'error';
+    if (e && ['not_granted', 'sampling_disabled', 'not_declared', 'capability_disabled', 'capability_removed'].includes(e.code)) S.ai.disabled = true;
+  }
+  S.ask.busy = false; render();
+  logEvent('ask', askLogData(myText));
+}
+function askLogData(text) {
+  const f = S.ask.facets || {}; const ans = answer();
+  const sol = f.solution || SOLUTION_OF[f.usecase] || '';
+  if (ans.total === 0) S.partners.filter(p => p.status !== 'invited' && ((f.industry && ((p.claims || {}).industries || []).includes(f.industry)) || (sol && ((p.claims || {}).solutions || []).includes(sol)))).forEach(p => bump(p.id, 'missed', null, 1));
+  return { text: text.slice(0, 140), source: S.ask.source, partner: f.partner || null, usecase: f.usecase || null, solution: f.solution || null, industry: f.industry || null, lob: f.lob || null, region: f.region || null, type: f.type || null, results: ans.total, partners: ans.partners.map(p => p.id) };
+}
+async function suggestTags() {
+  const sample = S.cap.sample; const F = S.form.upload; if (!sample || !F) return;
+  const names = (F.files || []).map(f => f.name).join(', ');
+  const prompt = 'A GSI partner marketer is uploading marketing collateral to Google Cloud\'s partner hub. From the file names and any notes, suggest tags and a 40-word summary. Reply with ONLY JSON: {"title":string,"asset_type":one of [' + TYPES.map(t => '"' + t + '"').join(',') + '],"use_case":one of the use cases or null,"industry":one of the industries or null,"region":one of the regions or null,"lob":one of the lines of business or null,"summary":string}\nUse cases: ' + USECASES.join(', ') + '\nIndustries: ' + INDUSTRIES.join(', ') + '\nRegions: ' + REGIONS.join(', ') + '\nLines of business: ' + LOBS.join(', ') + '\nPartner: ' + partnerName(S.role.partnerId) + '\nFiles: ' + names + '\nNotes: ' + (F.tags.notes || '') + '\nCurrent title: ' + (F.tags.title || '');
+  S.form.suggesting = true; render();
+  try {
+    let o; if (typeof sample.json === 'function') o = await sample.json(prompt, { modelTier: 'quick' }); else { const r = await sample(prompt, { modelTier: 'quick' }); const m = r.text.match(/\{[\s\S]*\}/); o = m ? JSON.parse(m[0]) : null; }
+    if (o && typeof o === 'object') {
+      const T = F.tags; if (o.title) T.title = String(o.title).slice(0, 120); const ty = canon(o.asset_type, TYPES); if (ty) T.type = ty; const u = canon(o.use_case, USECASES); if (u) T.usecase = u; const i = canon(o.industry, INDUSTRIES); if (i) T.industry = i; const r = canon(o.region, REGIONS); if (r) T.region = r; const l = canon(o.lob, LOBS); if (l) T.lob = l; if (o.summary) T.summary = String(o.summary).slice(0, 600);
+      toast('Suggested tags filled in, check them before you submit');
+    }
+  } catch (e) { toast(e && e.code === 'not_granted' ? 'The model is not available in this view' : 'Could not get a suggestion, fill the tags by hand'); }
+  S.form.suggesting = false; render();
+}
+
+// ───────────────────────── retrieval (deterministic) ─────────────────────────
+function matchAsset(a, f, ignorePartner) {
+  if (!ignorePartner && f.partner && a.partnerId !== f.partner) return false;
+  if (f.usecase && a.usecase !== f.usecase) return false;
+  if (!f.usecase && f.solution && a.solution !== f.solution) return false;
+  if (f.industry && f.industry !== 'All industries' && a.industry !== f.industry && a.industry !== 'All industries') return false;
+  if (f.region && f.region !== 'All APAC' && a.region !== f.region && a.region !== 'All APAC') return false;
+  if (f.type && a.type !== f.type) return false;
+  if (f.lob && a.lob !== f.lob) return false;
+  if (f.words && f.words.length) { const hay = [a.title, a.summary, partnerName(a.partnerId), a.type, a.usecase, a.solution, a.industry, a.region, a.lob].join(' ').toLowerCase(); if (!f.words.every(w => hay.indexOf(w) !== -1)) return false; }
+  return true;
+}
+function answer() {
+  const f = S.ask.facets; const out = { mode: 'home', partners: [], groups: [], pendingN: 0, total: 0, live: 0 };
+  if (!f) return out;
+  const pool = S.assets.filter(a => a.status !== 'archived' && (searchable(a) || a.status === 'pending'));
+  const all = pool.filter(a => matchAsset(a, f, false));
+  const live = all.filter(searchable); out.pendingN = all.length - live.length; out.live = live.length;
+  const shown = S.ask.showPending ? all : live; out.total = shown.length;
+  if (f.partner) {
+    out.mode = shown.length ? 'partner' : 'empty';
+    out.groups = TYPES.map(t => ({ type: t, label: PLURAL[t], assets: shown.filter(a => a.type === t) })).filter(g => g.assets.length);
+  } else {
+    const byP = {}; shown.forEach(a => (byP[a.partnerId] = byP[a.partnerId] || []).push(a));
+    const score = id => { const l = byP[id].filter(searchable); const exact = l.filter(a => (!f.industry || a.industry === f.industry) && (!f.region || f.region === 'All APAC' || a.region === f.region)).length; return exact * 10 + l.length; };
+    out.partners = Object.keys(byP).sort((x, y) => score(y) - score(x)).map(id => ({ id, p: partner(id) || { name: id }, assets: byP[id], liveN: byP[id].filter(searchable).length }));
+    out.mode = out.partners.length ? 'set' : 'empty';
+  }
+  return out;
+}
+function phrase(f) {
+  const topic = f.usecase || f.solution || (f.type ? PLURAL[f.type].toLowerCase() : null) || (f.words && f.words.length ? '“' + f.words.join(' ') + '”' : null);
+  const where = [f.industry && f.industry !== 'All industries' ? f.industry : null, f.region && f.region !== 'All APAC' ? f.region : null].filter(Boolean).join(', ');
+  const lob = f.lob ? ' for ' + f.lob : '';
+  return topic ? 'for ' + topic + (where ? ' in ' + where : '') + lob : (where ? 'in ' + where + lob : (lob ? lob.replace(/^ for /, 'for ') : ''));
+}
+
+// ───────────────────────── logging (the phase-3 dataset) ─────────────────────────
+let logDocRef = null, logBuf = null, logFlushing = false;
+async function logEvent(kind, data) {
+  const ev = Object.assign({ t: nowIso(), kind, role: S.role ? S.role.kind : 'anon', partnerRole: S.role && S.role.partnerId || null }, data || {});
+  if (!S.cap.db || !S.canEdit) return; // the log is Google-side only: partner accounts never write to it, and cannot read it
+  try {
+    if (!logDocRef) { const month = nowIso().slice(0, 7); logDocRef = S.cap.db.doc('log/' + month + '-' + (S.uid || 'anon').replace(/[^A-Za-z0-9_\-.~:@+]/g, '')); }
+    if (!logBuf) { const snap = await logDocRef.get(); logBuf = snap.exists ? (snap.data().events || []).slice() : []; }
+    logBuf.push(ev); if (logBuf.length > 1500) logBuf = logBuf.slice(-1500);
+    if (logFlushing) return; logFlushing = true;
+    await logDocRef.set({ events: logBuf, updatedAt: nowIso() });
+  } catch (e) { } finally { logFlushing = false; }
+}
+
+// ───────────────────────── boot ─────────────────────────
+const use = n => { try { return (window.claude && window.claude.use) ? window.claude.use(n).catch(() => null) : Promise.resolve(null); } catch (e) { return Promise.resolve(null); } };
+async function boot() {
+  window.addEventListener('hashchange', () => { S.route = routeFromHash(); S.ui.returning = false; S.ui.confirm = null; render(); });
+  document.getElementById('app').addEventListener('click', onClick);
+  document.getElementById('app').addEventListener('input', onInput);
+  document.getElementById('app').addEventListener('change', onInput);
+  document.getElementById('app').addEventListener('keydown', onKey);
+  document.getElementById('app').addEventListener('submit', e => e.preventDefault());
+  const [db, user, sample, assets, downloads] = await Promise.all([use('db'), use('user'), use('sample'), use('assets'), use('downloads')]);
+  S.cap = { db, user, sample, assets, downloads }; S.capReady = true;
+  // Edit rights decide the Google side. Without the user capability the page cannot tell, so it offers the Google-side roles;
+  // the store's rules still decide what such a viewer can actually read, so nothing leaks either way.
+  S.canEdit = true;
+  if (user) { try { const me = await user.me(); S.uid = me.id || null; S.meName = me.name || ''; S.canEdit = !!(me.canEdit || me.isOwner); } catch (e) { } }
+  S.route = routeFromHash();
+  if (!db) { S.storeFailed = true; render(); return; }
+  // Who is this viewer? Editors (the Google side) choose a role and may walk the partner persona for demos.
+  // Viewers without edit rights are partner marketers: their partner comes from the roles collection, which only editors write.
+  const onErr = () => { S.storeFailed = true; render(); };
+  const pending = new Set(['partners', 'assets', 'requests', 'settings', 'stats'].concat(S.canEdit ? ['kits', 'log', 'roles'] : ['role']));
+  const ready = k => { pending.delete(k); if (!pending.size) S.storeReady = true; render(); };
+  const mapDocs = s => s.docs.map(d => Object.assign({ id: d.id }, d.data()));
+  if (S.canEdit) { if (!S.role || S.role.kind === 'unassigned') S.role = { kind: 'field' }; }
+  else {
+    S.role = { kind: 'unassigned' };
+    const uid = safeId(S.uid);
+    if (!uid) ready('role');
+    else {
+      // A partner account learns its partner from roles/<own id>: the only document in `roles` it can read; only editors write it.
+      db.doc('roles/' + uid).onSnapshot(s => {
+        const pid = s.exists ? s.data().partnerId : null; const was = S.role.kind;
+        S.role = pid ? { kind: 'partner', partnerId: pid } : { kind: 'unassigned' };
+        if (was !== S.role.kind) go(defaultRoute());
+        ready('role');
+      }, onErr);
+      // Requests addressed to this person arrive in inbox/<own id>: readable and writable by them, and by the Google side; by nobody else.
+      db.collection('inbox/' + uid + '/requests').onSnapshot(s => { S.requests = mapDocs(s); ready('requests'); }, onErr);
+    }
+  }
+  db.collection('partners').onSnapshot(s => { S.partners = mapDocs(s).sort((a, b) => a.name.localeCompare(b.name)); ready('partners'); }, onErr);
+  db.collection('assets').onSnapshot(s => { S.assets = mapDocs(s); ready('assets'); }, onErr);
+  db.doc('settings/main').onSnapshot(s => { if (s.exists) S.settings = Object.assign({}, S.settings, s.data()); ready('settings'); }, onErr);
+  db.collection('stats').onSnapshot(s => { const o = {}; s.docs.forEach(d => o[d.id] = d.data()); S.stats = o; ready('stats'); }, onErr);
+  if (S.canEdit) {
+    db.collection('requests').onSnapshot(s => { S.requests = mapDocs(s); ready('requests'); }, onErr);
+    db.collection('kits').onSnapshot(s => { S.kits = mapDocs(s); ready('kits'); }, onErr);
+    db.collection('log').onSnapshot(s => { S.logs = mapDocs(s); ready('log'); }, onErr);
+    db.collection('roles').onSnapshot(s => { S.roles = mapDocs(s); ready('roles'); ensureProfiles(S.roles.map(r => r.id)); watchInboxes(); }, onErr);
+  }
+  render();
+}
+const safeId = id => String(id || '').replace(/[^A-Za-z0-9_\-.~:@+]/g, '') || null;
+// Google side only: follow each partner account's inbox so a request marked done over there shows as done here.
+const inboxSubs = {};
+function watchInboxes() {
+  const db = S.cap.db; if (!db || !S.canEdit) return;
+  const want = new Set(S.roles.filter(r => r.kind === 'partner').map(r => safeId(r.id)).filter(Boolean));
+  Object.keys(inboxSubs).forEach(uid => { if (!want.has(uid)) { try { inboxSubs[uid](); } catch (e) { } delete inboxSubs[uid]; delete S.inboxes[uid]; } });
+  want.forEach(uid => { if (inboxSubs[uid]) return; try { inboxSubs[uid] = db.collection('inbox/' + uid + '/requests').onSnapshot(s => { S.inboxes[uid] = s.docs.map(d => Object.assign({ id: d.id }, d.data())); render(); }, () => { }); } catch (e) { } });
+}
+function reqStatus(r) { if (r.status !== 'open') return r.status; return Object.values(S.inboxes).some(list => list.some(c => c.id === r.id && c.status === 'done')) ? 'done' : 'open'; }
+function membersOf(partnerId) { return S.roles.filter(r => r.kind === 'partner' && r.partnerId === partnerId).map(r => safeId(r.id)).filter(Boolean); }
+// A request is one deliberate message from Google to one partner: the canonical copy stays on the Google side (admin-only path),
+// and a copy lands in the inbox of every person linked to that partner. Nothing about the ask is written anywhere a partner can read until this moment.
+async function sendRequest(body) {
+  const db = S.cap.db; const ref = await db.collection('requests').add(body);
+  const to = membersOf(body.partnerId);
+  for (const uid of to) { try { await db.doc('inbox/' + uid + '/requests/' + ref.id).set(Object.assign({}, body)); } catch (e) { } }
+  if (to.length) await ref.update({ to });
+  return ref;
+}
+let profilePending = null;
+function ensureProfiles(ids) {
+  const user = S.cap.user; if (!user || !ids.length) return;
+  const missing = ids.filter(id => !(id in S.profiles)); if (!missing.length || profilePending) return;
+  profilePending = user.profiles(missing).then(ps => { Object.keys(ps).forEach(id => S.profiles[id] = ps[id].name || ''); profilePending = null; render(); }).catch(() => { profilePending = null; });
+}
+function routeFromHash() { const hsh = (location.hash || '').replace(/^#/, ''); return /^[A-Za-z0-9-]+$/.test(hsh) ? hsh : ''; }
+function defaultRoute() { return S.role.kind === 'field' ? 'ask' : S.role.kind === 'partner' ? 'partner-home' : S.role.kind === 'pm' ? 'queue' : 'unassigned'; }
+function go(r) { if (routeFromHash() === r) { S.route = r; render(); } else location.hash = r; }
+function applyRole(v) { if (!v) return; if (v.startsWith('partner:')) setRole({ kind: 'partner', partnerId: v.slice(8) }); else setRole({ kind: v }); }
+function setRole(role) { if (!S.canEdit) return; S.role = role; try { localStorage.setItem('gpm.role', JSON.stringify(role)); } catch (e) { } S.ask.facets = null; S.ask.draft = ''; S.form = {}; go(defaultRoute()); }
+
+// ───────────────────────── render ─────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  const active = document.activeElement; const activeId = active && active.id; const sel = active && active.selectionStart;
+  const route = S.route || defaultRoute();
+  let main;
+  if (!S.capReady) main = loadingView('Connecting to the shared library…');
+  else if (S.storeFailed) main = failView();
+  else if (!S.storeReady) main = loadingView('Loading partners, assets and kits…');
+  else main = view(route);
+  app.innerHTML = header(route) + '<main class="wrap">' + main + '</main>' + (S.ui.toast ? '<div class="toast" role="status">' + h(S.ui.toast) + '</div>' : '');
+  if (activeId) { const el = document.getElementById(activeId); if (el && el.focus) { el.focus({ preventScroll: true }); try { if (typeof sel === 'number' && el.setSelectionRange) el.setSelectionRange(sel, sel); } catch (e) { } } }
+}
+function header(route) {
+  const r = S.role || { kind: 'field' };
+  const nav = r.kind === 'field' ? [['ask', 'Ask'], ['partners', 'Partners'], ['kits', 'My kits'], ['soon', 'Compare · phase 2']]
+    : r.kind === 'partner' ? [['partner-home', 'Home'], ['library', 'Library'], ['upload', 'Upload'], ['digest', 'Digest preview'], ['view-as-google', 'View as Google'], ['soon', 'Strength profile · phase 2']]
+      : r.kind === 'pm' ? [['queue', 'Queue'], ['admin-partners', 'Partners'], ['admin-taxonomy', 'Taxonomy'], ['admin-settings', 'Reminders'], ['admin-usage', 'Usage']] : [];
+  const roleLabel = r.kind === 'partner' ? 'Partner marketer · ' + partnerName(r.partnerId) : r.kind === 'pm' ? 'Partner manager · Google' : r.kind === 'field' ? 'Field marketer · Google' : 'Not assigned yet';
+  const isOn = key => route === key || (key === 'ask' && (route === '' || route.startsWith('asset-') || route.startsWith('partner-') && r.kind === 'field' && route !== 'partner-home')) || (key === 'kits' && route.startsWith('kit-')) || (key === 'partners' && route === 'partners') || (key === 'library' && route === 'library');
+  const pendingN = S.assets.filter(a => a.status === 'pending').length;
+  const roleOpts = ROLES.map(x => '<option value="' + x.id + '"' + (r.kind === x.id ? ' selected' : '') + '>' + h(x.label) + '</option>').join('') + S.partners.filter(p => p.status !== 'invited').map(p => '<option value="partner:' + h(p.id) + '"' + (r.kind === 'partner' && r.partnerId === p.id ? ' selected' : '') + '>Partner marketer · ' + h(p.name) + '</option>').join('');
+  return '<div class="hdr"><div class="wrap">' +
+    '<a class="brand" href="#' + defaultRoute() + '"><span class="mark"></span>GPM Hub' + (r.kind === 'partner' ? '<span class="muted" style="font-weight:500"> · ' + h(partnerName(r.partnerId)) + '</span>' : r.kind === 'pm' ? '<span class="muted" style="font-weight:500"> · admin</span>' : '') + '</a>' +
+    '<nav class="nav" aria-label="Main">' + nav.map(([k, l]) => k === 'soon' ? '<span class="soon" title="Comes with the next phase">' + h(l) + '</span>' : k === 'view-as-google' ? '<a href="#partner-' + h(r.partnerId) + '" data-act="view-as-google">' + h(l) + '</a>' : '<a href="#' + k + '" class="' + (isOn(k) ? 'on' : '') + '">' + h(l) + (k === 'queue' && pendingN ? ' <span class="badge pending">' + pendingN + '</span>' : '') + '</a>').join('') + '</nav>' +
+    '<div class="hdr-right">' + (r.kind === 'field' && route !== 'ask' && route !== '' ? '<a class="btn sm" href="#ask">Ask</a>' : '') +
+    (S.canEdit ? '<label class="role"><span>Viewing as</span><select id="roleSel" data-act="role" aria-label="Viewing as">' + roleOpts + '</select></label>' : '<span class="role"><span>' + h(roleLabel) + '</span></span>') +
+    '<span class="who">' + h(S.meName || 'Signed-in viewer') + '</span></div></div></div>';
+}
+function loadingView(msg) { return '<div class="hero"><div class="word"><span class="mark"></span>GPM Hub</div><div class="askbox"><input type="text" placeholder="Ask for a partner\'s assets, or find partners for a use case" disabled><span class="go"></span></div><p class="muted">' + h(msg) + '</p></div>'; }
+function failView() { return '<div class="hero"><div class="word"><span class="mark"></span>GPM Hub</div><div class="empty" style="max-width:560px"><h2>The shared library is not reachable from this view</h2><p class="muted">GPM Hub keeps partners, assets, kits and the review queue in the artifact\'s shared store, which needs a signed-in viewer from the organisation inside claude.ai. Open the link there and the page fills in.</p></div></div>'; }
+function view(route) {
+  const r = S.role;
+  if (r.kind === 'unassigned') return '<div class="hero"><div class="word"><span class="mark"></span>GPM Hub</div><div class="empty" style="max-width:560px"><h2>Your account is not linked to a partner yet</h2><p class="muted">GPM Hub shows each partner marketer their own library, to-do and uploads. Ask your Google partner manager to add you under your partner in Admin › Partners. Nothing else is visible until then.</p></div></div>';
+  if (r.kind === 'partner') {
+    // A partner account's world is its own partner: home, library, upload, digest, its own assets and its own partner page as Google sees it.
+    const a = route.startsWith('asset-') ? byId(S.assets, route.slice(6)) : null;
+    const ok = ['partner-home', 'library', 'upload', 'digest', ''].includes(route) || (a && a.partnerId === r.partnerId) || route === 'partner-' + r.partnerId;
+    if (!ok) return '<div class="empty"><h2>Not in your workspace</h2><p class="muted">Your account sees ' + h(partnerName(r.partnerId)) + '\'s library and to-do. <a href="#partner-home">Back home</a></p></div>';
+  }
+  if (route.startsWith('asset-')) return assetView(route.slice(6));
+  if (route.startsWith('kit-')) return kitsView(route.slice(4), true);
+  if (route.startsWith('partner-') && route !== 'partner-home') return partnerView(route.slice(8));
+  if (r.kind === 'field') { if (route === 'partners') return partnersIndex(); if (route === 'kits') return kitsView(null, false); return askView(); }
+  if (r.kind === 'partner') { if (route === 'upload') return uploadView(); if (route === 'digest') return digestView(); if (route === 'library') return libraryView(); return partnerHome(); }
+  if (route === 'admin-partners') return adminPartners(); if (route === 'admin-taxonomy') return adminTaxonomy(); if (route === 'admin-settings') return adminSettings(); if (route === 'admin-usage') return adminUsage(); return queueView();
+}
+const badge = (st, extra) => '<span class="badge ' + h(st) + '">' + h({ live: 'Live', expiring: 'Expiring', pending: 'Pending review', returned: 'Returned', expired: 'Expired', draft: 'Draft', archived: 'Archived', missing: 'Missing', request: 'Requested' }[st] || st) + (extra ? ' · ' + h(extra) : '') + '</span>';
+const thumb = (a, cls) => { const src = a.fileAssetId ? '/_blob/' + a.fileAssetId : ''; const img = src && /^image\//.test(a.fileType || '') ? '<img src="' + h(src) + '" alt="">' : src && /^video\//.test(a.fileType || '') ? '<video src="' + h(src) + '" muted playsinline></video>' : h(SHORT[a.type] || 'file'); return '<div class="thumb ' + (cls || '') + '">' + img + '</div>'; };
+const noteFor = a => { const s = effStatus(a); return s === 'pending' ? 'pending review · hidden from the field' : s === 'returned' ? 'returned · ' + (a.returnNote || 'see note') : s === 'expiring' ? 'expires ' + fmtDate(a.validUntil) + ' · verified ' + fmtDate(a.verifiedAt) : s === 'expired' ? 'expired ' + fmtDate(a.validUntil) : 'verified ' + fmtDate(a.verifiedAt) + (a.extEvents ? ' · customer-approved for events' : ''); };
+const kitBtn = (a, cls) => { const k = currentKit(); const inK = !!(k && (k.items || []).includes(a.id)); const pend = !searchable(a); return '<button class="btn sm ' + (inK ? 'on' : '') + ' ' + (cls || '') + '" data-act="kit-toggle" data-id="' + h(a.id) + '"' + (pend ? ' disabled' : '') + '>' + (pend ? 'Not available' : inK ? 'In kit ✓' : 'Add to kit') + '</button>'; };
+
+// ---- Ask ----
+function askView() {
+  const f = S.ask.facets; const draftVal = h(S.ask.draft);
+  if (!f) {
+    const liveN = S.assets.filter(searchable).length;
+    const ex = [['Partner', (S.partners[0] ? S.partners[0].name : 'Harrowgate') + '\'s assets for AI in banking, Indonesia'], ['Use case', 'Which partners can do gen AI customer service for banks in Indonesia?'], ['Use case', 'SAP on Google Cloud for manufacturers in Vietnam']];
+    return '<div class="hero"><div class="word"><span class="mark"></span>GPM Hub</div>' +
+      '<form class="askbox" data-ask><label for="ask" class="sr" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Ask</label><input id="ask" type="text" value="' + draftVal + '" data-field="ask.draft" placeholder="Ask for a partner\'s assets, or find partners for a use case" autocomplete="off"><button class="go" type="submit" data-act="ask" aria-label="Ask">' + arrow() + '</button></form>' +
+      '<div class="examples">' + ex.map(e => '<button type="button" data-act="example" data-text="' + h(e[1]) + '"><span class="k">' + e[0] + '</span><span class="t">' + h(e[1]) + '</span></button>').join('') + '</div>' +
+      '<p class="tiny faint" style="margin-top:28px">Google internal · ' + num(S.partners.filter(p => p.status !== 'invited').length, 'partner', 'partners') + ' · ' + num(liveN, 'verified asset', 'verified assets') + ' · every one reviewed by a Google partner manager before it appears here' + (S.cap.sample && !S.ai.disabled ? ' · the ask is read by the model' : ' · the ask is read by rules in this view') + '</p></div>';
+  }
+  const A = answer();
+  const chips = []; const chip = (k, key, v) => { if (v) chips.push({ k, key, v }); };
+  chip('Partner', 'partner', f.partner ? partnerName(f.partner) : null); chip('Use case', 'usecase', f.usecase); chip('Solution', 'solution', f.usecase ? null : f.solution); chip('Industry', 'industry', f.industry); chip('LOB', 'lob', f.lob); chip('Region', 'region', f.region); chip('Type', 'type', f.type); chip('Text', 'words', f.words && f.words.length ? f.words.join(' ') : null);
+  const ph = phrase(f);
+  let heading, sub;
+  if (f.partner) { const P = partner(f.partner) || {}; heading = h(P.name) + ' · ' + num(A.live, 'verified asset', 'verified assets') + (ph ? ' ' + h(ph) : ''); sub = h(P.line || '') + ' · ' + h(P.contact || ''); }
+  else if (A.partners.length) { heading = A.partners.length + (A.partners.length === 1 ? ' partner has' : ' partners have') + ' verified assets ' + h(ph); sub = 'Ordered by how much verified material matches, exact industry and region first. Open a partner for everything they hold.'; }
+  else { heading = 'Nothing verified ' + h(ph || 'for this'); sub = ''; }
+  const refs = [];
+  if (f.partner) { refs.push({ l: 'Compare other partners for this', act: 'ref', key: 'partner', v: '' }); if (ph) refs.push({ l: 'Everything from ' + partnerName(f.partner), act: 'ref-clear' }); }
+  else { if (f.region && f.region !== 'All APAC') refs.push({ l: 'Across APAC', act: 'ref', key: 'region', v: '' }); else refs.push({ l: 'Indonesia only', act: 'ref', key: 'region', v: 'Indonesia' }); if (!f.industry) refs.push({ l: 'Financial services only', act: 'ref', key: 'industry', v: 'Financial Services' }); }
+  if (!f.type) refs.push({ l: 'Only case studies', act: 'ref', key: 'type', v: 'Case study' }); else refs.push({ l: 'All asset types', act: 'ref', key: 'type', v: '' });
+  const others = !f.partner && A.partners.length ? S.partners.filter(p => p.status !== 'invited' && !A.partners.some(x => x.id === p.id)).map(p => p.name) : [];
+  const kit = currentKit();
+  let body;
+  if (A.mode === 'set') body = A.partners.map(P => '<article class="pcard"><div class="head"><div class="row" style="min-width:0"><span class="logo">' + h(P.p.name.slice(0, 1)) + '</span><div><a href="#partner-' + h(P.id) + '" style="font-size:17px;font-weight:700;color:var(--ink)">' + h(P.p.name) + '</a><div class="small muted">' + h(P.p.line || '') + '</div></div></div><div class="small muted" style="text-align:right"><strong style="color:var(--ink)">' + num(P.liveN, 'verified for this', 'verified for this') + '</strong><br>' + h(mix(P.assets.filter(searchable))) + '</div></div>' +
+    '<div>' + P.assets.slice(0, 4).map(a => '<div class="arow" style="opacity:' + (searchable(a) ? 1 : .65) + '">' + thumb(a) + '<div class="grow"><a href="#asset-' + h(a.id) + '" style="font-weight:600;color:var(--ink)">' + h(a.title) + '</a><div class="tiny muted">' + h(a.type) + ' · ' + h(a.region) + ' · ' + h(noteFor(a)) + '</div></div>' + kitBtn(a) + '</div>').join('') + (P.assets.length > 4 ? '<div class="tiny muted" style="padding-top:8px">and ' + (P.assets.length - 4) + ' more</div>' : '') + '</div>' +
+    '<div class="row between"><a href="#partner-' + h(P.id) + '" style="font-weight:600">Everything from ' + h(P.p.name) + ' →</a><span class="tiny faint">' + h(P.p.contact || '') + '</span></div></article>').join('') +
+    (others.length ? '<p class="small faint">' + h(others.join(', ')) + ' have nothing verified for this. Their partner managers see that in Usage.</p>' : '');
+  else if (A.mode === 'partner') body = A.groups.map(g => '<section class="col"><div class="row" style="gap:8px"><h2>' + h(g.label) + '</h2><span class="muted small">' + g.assets.length + '</span></div><div class="grid-cards">' + g.assets.map(acard).join('') + '</div></section>').join('');
+  else body = '<div class="empty" style="max-width:640px"><h2>Nothing verified for this yet</h2><p class="muted">The ask is logged for the program team. It feeds the expected-items review and partner recruitment. Widen it with a chip above, or ask the partners who claim this to add something.</p>' + (S.ask.requested ? '<span class="badge request">Sent to the partners who claim this</span>' : '<button class="btn primary" data-act="ask-partners">Ask partners for this</button>') + '</div>';
+  return '<div class="col" style="gap:18px">' +
+    '<form class="askbox compact" data-ask style="max-width:760px"><label for="ask" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Ask</label><input id="ask" type="text" value="' + draftVal + '" data-field="ask.draft" placeholder="Ask for a partner\'s assets, or find partners for a use case" autocomplete="off"><button class="go" type="submit" data-act="ask" aria-label="Ask">' + arrow() + '</button></form>' +
+    '<div class="reading"><span>' + (S.ask.busy ? 'Reading your ask…' : 'Reading this as') + '</span>' + chips.map(c => '<span class="pill"><span class="k">' + h(c.k) + '</span>' + h(c.v) + '<button type="button" data-act="chip-x" data-key="' + h(c.key) + '" aria-label="Remove ' + h(c.v) + '">×</button></span>').join('') + '<span class="src">' + (S.ask.busy ? '' : S.ask.source === 'model' ? 'read by the model' : 'read by rules') + '</span>' + (S.ask.reading ? '<span class="src">· ' + h(S.ask.reading) + '</span>' : '') + '</div>' +
+    '<div class="answer ' + (S.ask.kitOpen ? 'kit-open' : '') + '"><div class="col" style="gap:20px"><div><h1>' + heading + '</h1><div class="row small muted" style="margin-top:6px;gap:6px 14px"><span>' + sub + '</span>' + (A.pendingN ? '<button class="btn ghost sm" data-act="toggle-pending">' + (S.ask.showPending ? 'hide' : 'show') + ' ' + num(A.pendingN, 'pending review', 'pending review') + '</button>' : '') + '</div></div>' +
+    '<div class="row" style="gap:8px">' + refs.map(x => '<button type="button" class="chip" data-act="' + x.act + '" data-key="' + h(x.key || '') + '" data-v="' + h(x.v || '') + '">' + h(x.l) + '</button>').join('') + '<button type="button" class="chip" data-act="kit-open">' + (S.ask.kitOpen ? 'Hide kit' : 'Kit · ' + (kit ? (kit.items || []).length : 0)) + '</button></div>' +
+    body + '<p class="tiny faint" style="border-top:1px solid var(--line);padding-top:10px">Partners are ordered by how much verified material they hold for this ask. Suitability scoring for a campaign comes in phase 3, built on the engagement log this page already writes.</p></div>' +
+    (S.ask.kitOpen ? kitPanel() : '') + '</div></div>';
+}
+const arrow = () => '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+function mix(list) { return TYPES.map(t => { const c = list.filter(a => a.type === t).length; return c ? c + ' ' + (c === 1 ? SHORT[t] : PLURAL[t].toLowerCase().replace('architecture and joint propositions', 'architectures').replace('fliers and brochures', 'fliers')) : null; }).filter(Boolean).join(', '); }
+function acard(a) { const s = effStatus(a); return '<article class="acard" style="opacity:' + (searchable(a) ? 1 : .7) + '"><a href="#asset-' + h(a.id) + '" aria-label="Open ' + h(a.title) + '">' + thumb(a) + '</a><div><a class="title" href="#asset-' + h(a.id) + '">' + h(a.title) + '</a><div class="small muted">' + h(a.usecase) + ' · ' + h(a.region) + '</div><div class="tiny faint">' + h(noteFor(a)) + '</div></div><div class="row between">' + badge(s) + kitBtn(a) + '</div></article>'; }
+function kitPanel() {
+  const k = currentKit(); const items = k ? (k.items || []).map(id => byId(S.assets, id)).filter(Boolean) : [];
+  return '<aside class="kitpanel" aria-label="Kit"><div class="row between"><strong>' + h(k ? k.name : 'No kit yet') + '</strong><a href="#kits" class="small">All kits</a></div><div class="tiny muted">' + items.length + ' assets · nothing pending can be added</div>' +
+    items.map(a => '<div class="item">' + thumb(a, '') .replace('class="thumb "', 'class="thumb" style="width:40px;height:28px;font-size:9px"') + '<span class="grow"><span style="display:block;font-weight:500">' + h(a.title) + '</span><span class="tiny faint">' + h(partnerName(a.partnerId)) + '</span></span><button class="pill" style="min-height:30px;padding:0 4px" data-act="kit-toggle" data-id="' + h(a.id) + '" aria-label="Remove"><button type="button" tabindex="-1">×</button></button></div>').join('') +
+    (items.length ? '' : '<div class="empty" style="padding:14px"><span class="small muted">Add assets from the answer to build this kit.</span></div>') +
+    '<div class="col" style="gap:6px;padding-top:8px;border-top:1px solid var(--line)"><button class="btn primary sm" data-act="kit-zip"' + (items.length ? '' : ' disabled') + '>Download as zip</button><button class="btn sm" data-act="kit-link"' + (k ? '' : ' disabled') + '>Copy share link</button></div></aside>';
+}
+
+// ---- Partners index (field) ----
+function partnersIndex() {
+  return '<div class="col" style="gap:20px"><div><h1>Partners</h1><p class="muted">Every GSI in the program, with what each holds. Open one for the shelf.</p></div><div class="grid-cards" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">' + S.partners.filter(p => p.status !== 'invited').map(p => { const mine = S.assets.filter(a => a.partnerId === p.id); const live = mine.filter(searchable); const exp = expectedFor(p); const have = exp.filter(c => c.state === 'live' || c.state === 'expiring').length; return '<a class="card" href="#partner-' + h(p.id) + '" style="color:var(--ink);display:flex;flex-direction:column;gap:8px"><div class="row"><span class="logo" style="width:40px;height:40px;border-radius:10px;background:var(--surface-2);display:inline-flex;align-items:center;justify-content:center;font-weight:700">' + h(p.name.slice(0, 1)) + '</span><strong style="font-size:16px">' + h(p.name) + '</strong></div><div class="small muted">' + h(p.line || '') + '</div><div class="small">' + num(live.length, 'verified asset', 'verified assets') + ' · ' + h(mix(live) || 'nothing live') + '</div><div class="tiny faint">Expected items ' + have + ' of ' + exp.length + ' · claims ' + ((p.claims || {}).solutions || []).length + ' solutions, ' + ((p.claims || {}).industries || []).length + ' industries</div></a>'; }).join('') + '</div></div>';
+}
+
+// ---- Partner page (Google view) ----
+function partnerView(id) {
+  const P = partner(id); if (!P) return '<div class="empty"><h2>No such partner</h2></div>';
+  const mine = S.assets.filter(a => a.partnerId === id && a.status !== 'archived');
+  const tabs = ['All'].concat(TYPES);
+  const vis = mine.filter(a => searchable(a) || (S.ask.showPending && a.status === 'pending'));
+  const shown = vis.filter(a => S.ui.partnerTab === 'All' || a.type === S.ui.partnerTab);
+  const exp = expectedFor(P); const have = exp.filter(c => c.state === 'live' || c.state === 'expiring').length;
+  const sol = (P.claims || {}).solutions || []; const ind = (P.claims || {}).industries || [];
+  const reqForm = S.form.req && S.form.req.partnerId === id && !S.form.req.assetId;
+  return '<div class="col" style="gap:20px"><div class="tiny muted"><a href="#ask">Ask</a> › <a href="#partners">Partners</a> › ' + h(P.name) + '</div>' +
+    '<div class="row between" style="align-items:flex-start"><div class="row" style="align-items:flex-start"><span class="logo" style="width:56px;height:56px;border-radius:14px;background:var(--surface-2);display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:22px">' + h(P.name.slice(0, 1)) + '</span><div><h1>' + h(P.name) + '</h1><div class="small muted" style="margin-top:4px">' + h(P.line || '') + ' · ' + num(mine.filter(searchable).length, 'live asset', 'live assets') + ' · ' + num(mine.filter(a => a.status === 'pending').length, 'pending', 'pending') + ' · partner manager ' + h(P.managerName || '[name]') + '</div><div class="small" style="margin-top:2px">Claims ' + h(sol.join(', ') || 'no solutions') + ' · ' + h(ind.join(', ') || 'no industries') + ' · ' + h(P.contact || '') + '</div></div></div>' +
+    '<div class="row"><button class="btn" data-act="req-open" data-partner="' + h(id) + '">Request an update</button>' + (S.role.kind === 'partner' ? '<a class="btn" href="#partner-home">Back to your workspace</a>' : '') + '<span class="nav"><span class="soon">Compare · phase 2</span></span></div></div>' +
+    (reqForm ? requestForm(P, null) : '') +
+    '<div class="two"><div class="col" style="gap:14px"><div class="tabs">' + tabs.map(t => '<button data-act="ptab" data-v="' + h(t) + '" class="' + (S.ui.partnerTab === t ? 'on' : '') + '">' + h(t === 'All' ? 'All' : PLURAL[t]) + ' · ' + vis.filter(a => t === 'All' || a.type === t).length + '</button>').join('') + '<label class="check" style="margin-left:auto;font-size:13px"><input type="checkbox" data-field="ask.showPending" ' + (S.ask.showPending ? 'checked' : '') + '>Include pending</label></div>' +
+    (shown.length ? '<div class="grid-cards">' + shown.map(acard).join('') + '</div>' : '<div class="empty"><span class="muted">Nothing live in this type. The expected-items grid says whether it is owed.</span></div>') + '</div>' +
+    '<aside class="col"><div class="card col" style="gap:10px"><div class="row between"><span class="eyebrow">Expected items</span><strong>' + have + ' of ' + exp.length + '</strong></div><div class="tiny muted">Per claimed solution a deck, a flier and an architecture. Per claimed industry a case study. One video.</div>' + expectedGrid(P, exp, false) + '</div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">Contacts</span><div class="row between small"><span>' + h(P.contact || 'Partner marketing lead') + '</span></div><div class="row between small"><span>Google partner manager · ' + h(P.managerName || '[name]') + '</span></div></div>' +
+    '<div class="card soft tiny muted"><strong style="color:var(--ink)">Phase 2 slot.</strong> Strength profile: capability by use case and industry, proof by region, speaker bench, verified the same way assets are.</div></aside></div></div>';
+}
+function expectedGrid(P, exp, withLinks) {
+  const sol = (P.claims || {}).solutions || [];
+  const cell = c => { const cls = c.state; const lab = { live: 'Live', expiring: 'Expiring', pending: 'Pending', returned: 'Returned', missing: 'Missing' }[cls]; return withLinks && (cls === 'missing' || cls === 'returned') ? '<a class="c ' + cls + '" href="#upload" data-act="upload-for" data-type="' + h(c.type) + '" data-solution="' + h(c.solution || '') + '" data-industry="' + h(c.industry || '') + '">' + (cls === 'missing' ? 'Add' : 'Fix') + '</a>' : '<span class="c ' + cls + '">' + lab + '</span>'; };
+  let g = '<div class="egrid"><span></span><span class="hd">Deck</span><span class="hd">Flier</span><span class="hd">Arch.</span>';
+  sol.forEach(s => { g += '<span style="font-weight:600">' + h(s) + '</span>' + ['Solution deck', 'Solution flier / brochure', 'GSI–GCP architecture and joint proposition'].map(t => cell(exp.find(c => c.type === t && c.solution === s))).join(''); });
+  g += '</div><div class="col" style="gap:4px;font-size:13px;border-top:1px solid var(--line);padding-top:8px">' + exp.filter(c => c.type === 'Case study' || c.type === 'Video').map(c => '<div class="row between"><span>' + h(c.label.replace(/^case study/, 'Case study').replace(/^video$/, 'Video')) + '</span>' + cell(c) + '</div>').join('') + '</div>';
+  return g;
+}
+function requestForm(P, a) {
+  const F = S.form.req; const exp = expectedFor(P).filter(c => c.state === 'missing' || c.state === 'returned');
+  const opts = a ? ['Renew before it expires', 'A version with this year\'s numbers', 'A local-language version', 'Something else'] : exp.map(c => c.label.replace(/^(\w)/, m => m.toUpperCase()) + ' (' + c.state + ')').concat(['Something else']);
+  if (F.sent) return '<div class="card soft row"><span class="badge request">Sent</span><span class="small muted">In ' + h(P.name) + '\'s to-do. You are copied on the reply.</span></div>';
+  return '<form class="card col" style="gap:10px;border-color:var(--ink)"><strong>Request an update from ' + h(P.name) + '</strong><div class="small muted">Goes to their to-do' + (a ? ' with this asset attached' : ' with the expected-item cell attached') + '. No email thread.</div><label class="f">What do you need?<select class="in" data-field="req.what">' + opts.map(o => '<option' + (F.what === o ? ' selected' : '') + '>' + h(o) + '</option>').join('') + '</select></label><label class="f">Context, optional<textarea class="in" rows="2" data-field="req.note" placeholder="Using it for a CMO roundtable in Jakarta, mid-Feb">' + h(F.note || '') + '</textarea></label><div class="row"><button class="btn primary" data-act="req-send">Send</button><button type="button" class="btn ghost" data-act="req-cancel">Cancel</button></div></form>';
+}
+
+// ---- Asset page ----
+function assetView(id) {
+  const a = byId(S.assets, id); if (!a) return '<div class="empty"><h2>No such asset</h2><p class="muted">It may have been archived.</p></div>';
+  const P = partner(a.partnerId) || {}; const s = effStatus(a);
+  const src = a.fileAssetId ? '/_blob/' + a.fileAssetId : '';
+  const preview = src && /^image\//.test(a.fileType || '') ? '<img src="' + h(src) + '" alt="' + h(a.title) + '" style="width:100%;border-radius:12px;border:1px solid var(--line)">' : src && /^video\//.test(a.fileType || '') ? '<video src="' + h(src) + '" controls style="width:100%;border-radius:12px;background:#000"></video>' : '<div class="thumb" style="aspect-ratio:16/9;max-width:100%;font-size:13px;flex-direction:column;gap:6px;text-transform:none;letter-spacing:0">' + (src ? '<a class="btn" href="' + h(src) + '" target="_blank" rel="noopener">Open ' + h(a.fileName || 'file') + '</a>' : '<span>' + h(a.fileName ? a.fileName + ' · file kept as reference only' : 'No file attached, metadata only') + '</span>') + '</div>';
+  const versions = S.assets.filter(x => x.id === a.id || x.replacesId === a.id || a.replacesId === x.id).sort((x, y) => (y.version || 1) - (x.version || 1));
+  const reqForm = S.form.req && S.form.req.assetId === id;
+  const mineRole = S.role.kind === 'partner' && S.role.partnerId === a.partnerId;
+  const related = S.assets.filter(x => x.partnerId === a.partnerId && x.id !== a.id && searchable(x) && (x.usecase === a.usecase || x.industry === a.industry)).slice(0, 3);
+  return '<div class="col" style="gap:18px"><div class="tiny muted"><a href="#' + (S.role.kind === 'partner' ? 'library' : 'ask') + '">' + (S.role.kind === 'partner' ? 'Library' : 'Ask') + '</a> › <a href="#partner-' + h(a.partnerId) + '">' + h(P.name || '') + '</a> › ' + h(a.type) + '</div>' +
+    '<div class="two"><section class="col" style="gap:16px"><div class="row between" style="align-items:flex-start"><div><h1>' + h(a.title) + '</h1><div class="row small muted" style="margin-top:6px;gap:8px">' + h(P.name || '') + ' · ' + h(a.type) + ' · v' + (a.version || 1) + badge(s, s === 'expiring' ? fmtDate(a.validUntil) : '') + '</div></div><div class="row">' + (S.role.kind === 'field' ? kitBtn(a, '') : '') + (src ? '<button class="btn" data-act="dl-asset" data-id="' + h(a.id) + '">Download</button>' : '') + '<button class="btn" data-act="copy" data-text="' + h(location.href.split('#')[0] + '#asset-' + a.id) + '">Copy link</button>' + (mineRole ? (s === 'expiring' || s === 'expired' ? '<button class="btn primary" data-act="renew" data-id="' + h(a.id) + '">Renew 12 months</button>' : '') + (s === 'pending' ? '<button class="btn" data-act="withdraw" data-id="' + h(a.id) + '">Withdraw</button>' : '') : '') + '</div></div>' +
+    preview + '<div class="card col" style="gap:6px"><span class="eyebrow">Summary, partner-written</span><p>' + h(a.summary || '—') + '</p></div>' +
+    '<div class="fgrid"><div class="card col" style="gap:6px"><span class="eyebrow">Versions</span>' + versions.map(v => '<div class="row between small" style="padding:4px 0;border-bottom:1px solid var(--line)"><span' + (v.id === a.id ? ' style="font-weight:600"' : '') + '>v' + (v.version || 1) + ' · ' + (v.status === 'pending' ? 'submitted ' + fmtDate(v.submittedAt) : 'verified ' + fmtDate(v.verifiedAt)) + (v.id === a.id ? ' · this one' : '') + '</span>' + badge(effStatus(v)) + '</div>').join('') + '</div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">Goes well with</span>' + (related.length ? related.map(x => '<a class="row small" href="#asset-' + h(x.id) + '" style="padding:4px 0;border-bottom:1px solid var(--line);color:var(--ink)"><span class="grow">' + h(x.title) + '</span><span class="faint">' + h(SHORT[x.type]) + '</span></a>').join('') : '<span class="small muted">Nothing else verified from this partner on the same topic.</span>') + '</div></div></section>' +
+    '<aside class="col"><div class="card"><span class="eyebrow">Details</span><dl class="dl" style="margin-top:10px"><dt>Use case</dt><dd>' + h(a.usecase) + ' <span class="faint">· ' + h(a.solution) + '</span></dd><dt>Industry</dt><dd>' + h(a.industry) + '</dd><dt>Line of business</dt><dd>' + h(a.lob || '—') + '</dd><dt>Region</dt><dd>' + h(a.region) + '</dd><dt>Language</dt><dd>' + h(a.language || '—') + '</dd><dt>External use</dt><dd><strong>' + h(a.extEvents ? 'Customer-approved for events and roundtables' : 'Internal use only') + (a.extPublishing ? ', and for Google publishing' : '') + '</strong></dd><dt>Valid until</dt><dd><strong>' + h(fmtDate(a.validUntil)) + '</strong>' + (s === 'expiring' ? ' · ' + daysUntil(a.validUntil) + ' days' : '') + '</dd><dt>Verified</dt><dd>' + (a.verifiedAt ? h(fmtDate(a.verifiedAt)) + ' by ' + h(a.verifiedBy || 'partner manager') : s === 'pending' ? 'in review since ' + h(fmtDate(a.submittedAt)) : '—') + '</dd><dt>Usage</dt><dd>' + downloadsOf(a.id) + ' downloads · in ' + inKitsCount(a.id) + ' kits</dd></dl></div>' +
+    (S.role.kind === 'field' ? '<div class="card col" style="gap:8px"><span class="eyebrow">Request an update</span>' + (reqForm ? requestForm(P, a) : '<div class="small muted">Goes to the owner\'s to-do with this asset attached.</div><button class="btn" data-act="req-open" data-partner="' + h(a.partnerId) + '" data-asset="' + h(a.id) + '" style="align-self:flex-start">Request an update</button>') + '</div>' : '') +
+    (s === 'returned' ? '<div class="card" style="border-color:var(--bad)"><span class="eyebrow">Returned</span><p class="small" style="margin-top:6px">' + h(a.returnNote || 'See note') + '</p>' + (mineRole ? '<a class="btn sm" href="#upload" data-act="upload-replace" data-id="' + h(a.id) + '" style="margin-top:8px">Fix and resubmit</a>' : '') + '</div>' : '') +
+    '<div class="card soft tiny muted"><strong style="color:var(--ink)">Phase 2 slot.</strong> This partner\'s strength in the use case and industry, against the others.</div></aside></div></div>';
+}
+
+// ---- Kits ----
+function kitsView(openId, shared) {
+  const mine = kitsMine();
+  const K = openId ? byId(S.kits, openId) : (byId(mine, S.kitId) || currentKit() || mine[0] || null);
+  if (openId && !K) return '<div class="empty"><h2>This kit is not available</h2></div>';
+  const owner = !!(K && K.ownerId === S.uid && S.uid); shared = shared || !owner;
+  const items = K ? (K.items || []).map(id => byId(S.assets, id)).filter(Boolean) : [];
+  const dropped = K ? (K.items || []).filter(id => !byId(S.assets, id) || !searchable(byId(S.assets, id))).map(id => byId(S.assets, id)).filter(Boolean) : [];
+  const liveItems = items.filter(searchable);
+  return '<div class="split" style="grid-template-columns:300px minmax(0,1fr)"><aside class="col" style="gap:10px"><div class="row between"><h1>My kits</h1><button class="btn sm" data-act="kit-new">New kit</button></div><div class="tiny muted">One kit per campaign. Reuse last quarter\'s, the system keeps it clean.</div>' +
+    (mine.length ? mine.map(k => { const n = (k.items || []).filter(id => { const a = byId(S.assets, id); return a && searchable(a); }).length; return '<button class="qitem ' + (K && K.id === k.id ? 'on' : '') + '" data-act="kit-pick" data-id="' + h(k.id) + '"><strong>' + h(k.name) + '</strong><span class="tiny muted">' + num(n, 'asset', 'assets') + (k.ownerId === 'shared' ? ' · shared example, read-only' : k.id === (currentKit() || {}).id ? ' · current' : '') + '</span></button>'; }).join('') : '<div class="empty"><span class="small muted">No kits yet. Add an asset from an answer and one is created.</span></div>') + '</aside>' +
+    '<section class="col" style="gap:14px">' + (K ? '<div class="row between" style="align-items:flex-start"><div><h2 style="font-size:22px">' + h(K.name) + '</h2><div class="small muted" style="margin-top:4px">' + h(K.note || '') + (K.note ? ' · ' : '') + num(liveItems.length, 'asset', 'assets') + ' · updated ' + h(fmtDate(K.updatedAt)) + '</div></div><div class="row"><button class="btn primary" data-act="kit-zip" data-id="' + h(K.id) + '"' + (liveItems.length ? '' : ' disabled') + '>Download as zip</button><button class="btn" data-act="kit-link" data-id="' + h(K.id) + '">Copy share link</button>' + (shared ? '' : '<button class="btn ghost" data-act="kit-rename" data-id="' + h(K.id) + '">Rename</button>') + '</div></div>' +
+    (S.form.rename === K.id ? '<form class="row"><label class="f grow">New name<input class="in" data-field="renameVal" value="' + h(S.form.renameVal || K.name) + '"></label><button class="btn primary" data-act="kit-rename-save" data-id="' + h(K.id) + '" style="align-self:flex-end">Save</button></form>' : '') +
+    '<div class="table" style="overflow:hidden"><div>' + (liveItems.length ? liveItems.map(a => '<div class="arow" style="padding:10px 14px;border-top:0;border-bottom:1px solid var(--line)">' + thumb(a) + '<div class="grow"><a href="#asset-' + h(a.id) + '" style="font-weight:600;color:var(--ink)">' + h(a.title) + '</a><div class="tiny muted">' + h(partnerName(a.partnerId)) + ' · ' + h(a.type) + ' · ' + h(a.industry) + ' · ' + h(a.region) + '</div></div>' + badge(effStatus(a)) + (shared ? '' : '<button class="pill" style="min-height:32px;padding:0 4px" data-act="kit-remove" data-kit="' + h(K.id) + '" data-id="' + h(a.id) + '" aria-label="Remove ' + h(a.title) + '"><button type="button" tabindex="-1">×</button></button>') + '</div>').join('') : '<div style="padding:28px 14px;text-align:center" class="small muted">Empty kit. <a href="#ask">Ask</a> and add assets from the answer.</div>') +
+    (dropped.length ? '<div style="padding:10px 14px;background:var(--surface)" class="tiny muted">Not in the download: ' + h(dropped.map(a => a.title + ' (' + effStatus(a) + ')').join('; ')) + '. Expired or withdrawn assets leave a kit on their own.</div>' : '') + '</div></div>' +
+    '<div class="tiny faint">The zip holds the live files, a manifest.json with tags and expiry, and a note per asset that has no file. A share link always shows the kit as it is now.</div>' : '<div class="empty"><span class="muted">Pick a kit.</span></div>') + '</section></div>';
+}
+
+// ---- Partner home ----
+function partnerHome() {
+  const P = partner(S.role.partnerId); if (!P) return '<div class="empty"><h2>No partner selected</h2></div>';
+  const mine = S.assets.filter(a => a.partnerId === P.id && a.status !== 'archived');
+  const exp = expectedFor(P); const have = exp.filter(c => c.state === 'live' || c.state === 'expiring').length;
+  const todos = [];
+  mine.filter(a => effStatus(a) === 'expiring').sort((a, b) => inKitsCount(b.id) - inKitsCount(a.id)).forEach(a => todos.push({ st: 'expiring', title: 'Renew ' + a.title, why: 'Expires ' + fmtDate(a.validUntil) + ' · in ' + num(inKitsCount(a.id), 'live kit', 'live kits') + ' · ' + downloadsOf(a.id) + ' downloads', act: 'renew', id: a.id, label: 'Renew' }));
+  mine.filter(a => a.status === 'returned').forEach(a => todos.push({ st: 'returned', title: a.title, why: 'Returned ' + fmtDate(a.updatedAt) + ' by your partner manager: “' + (a.returnNote || 'see note') + '”', href: '#upload', act: 'upload-replace', id: a.id, label: 'Fix and resubmit' }));
+  S.requests.filter(r => r.partnerId === P.id && reqStatus(r) === 'open').forEach(r => todos.push({ st: 'request', title: r.text, why: (r.fromLabel || 'A field marketer') + ' · ' + fmtDate(r.createdAt) + (r.assetId && byId(S.assets, r.assetId) ? ' · ' + byId(S.assets, r.assetId).title : ''), act: 'req-done', id: r.id, label: 'Mark done', href2: r.assetId ? '#asset-' + r.assetId : '#upload' }));
+  mine.filter(a => effStatus(a) === 'expired').forEach(a => todos.push({ st: 'expired', title: a.title, why: 'Expired ' + fmtDate(a.validUntil) + ', hidden from search', act: 'renew', id: a.id, label: 'Renew' }));
+  exp.filter(c => c.state === 'missing').forEach(c => todos.push({ st: 'missing', title: c.label.replace(/^(\w)/, m => m.toUpperCase()), why: 'Expected for a claimed ' + (c.industry ? 'industry' : c.solution ? 'solution' : 'partner'), href: '#upload', act: 'upload-for', type: c.type, solution: c.solution || '', industry: c.industry || '', label: 'Add' }));
+  const st = statsOf(P.id); const byAsset = st.downloads || {}; const dlN = Object.values(byAsset).reduce((n, v) => n + v, 0);
+  const top = Object.keys(byAsset).filter(id => byId(S.assets, id)).sort((x, y) => byAsset[y] - byAsset[x]).slice(0, 3);
+  const claims = P.claims || { solutions: [], industries: [] };
+  const missed = st.missed || 0;
+  const pend = mine.filter(a => a.status === 'pending');
+  return '<div class="col" style="gap:22px"><div class="row between" style="align-items:flex-end"><div><h1>' + h(new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })) + '</h1><div class="muted small" style="margin-top:4px">' + num(mine.filter(searchable).length, 'asset live', 'assets live') + ' in Google\'s search · ' + dlN + ' downloads · ' + num(pend.length, 'pending review', 'pending review') + '</div></div><a class="btn primary" href="#upload" data-act="upload-fresh">Upload assets</a></div>' +
+    '<div class="two"><section class="card col" style="gap:0;padding:0;border-color:var(--ink)"><div class="row between" style="padding:12px 18px;border-bottom:1px solid var(--line)"><strong>To do · ' + todos.length + '</strong><span class="tiny muted">ordered by what it costs you in search</span></div><div style="padding:0 18px">' + (todos.length ? todos.map(t => '<div class="todo">' + badge(t.st) + '<div class="grow"><div style="font-weight:600">' + h(t.title) + '</div><div class="tiny muted">' + h(t.why) + '</div></div>' + (t.href ? '<a class="btn sm" href="' + t.href + '" data-act="' + t.act + '" data-id="' + h(t.id || '') + '" data-type="' + h(t.type || '') + '" data-solution="' + h(t.solution || '') + '" data-industry="' + h(t.industry || '') + '">' + h(t.label) + '</a>' : (t.href2 ? '<a class="btn sm" href="' + t.href2 + '">Open</a>' : '') + '<button class="btn sm" data-act="' + t.act + '" data-id="' + h(t.id) + '">' + h(t.label) + '</button>') + '</div>').join('') : '<div class="small muted" style="padding:20px 0">Nothing owed. Next digest on the ' + S.settings.digestDay + 'st.</div>') + '</div></section>' +
+    '<aside class="col"><div class="tiles" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="tile"><div class="v">' + mine.filter(searchable).length + '</div><div class="l">Live</div></div><div class="tile"><div class="v">' + pend.length + '</div><div class="l">Pending review</div></div><div class="tile"><div class="v">' + have + ' <span class="muted" style="font-size:14px;font-weight:500">of ' + exp.length + '</span></div><div class="l">Expected items</div></div><div class="tile"><div class="v">' + S.settings.digestDay + '</div><div class="l">Digest day, monthly</div></div></div>' +
+    '<div class="card col" style="gap:8px"><span class="eyebrow">Expected items</span>' + expectedGrid(P, exp, true) + '<div class="tiny faint">You claim ' + h(claims.solutions.join(', ') || 'no solutions') + ' and ' + h(claims.industries.join(', ') || 'no industries') + '. Claim less, owe less.</div></div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">How you were found</span>' + (top.length ? top.map(id => { const a = byId(S.assets, id); return '<div class="row between small"><span class="grow">' + h(a ? a.title : id) + '</span><strong class="num">' + byAsset[id] + '</strong></div>'; }).join('') : '<span class="small muted">No downloads yet.</span>') + '<div class="tiny muted" style="border-top:1px solid var(--line);padding-top:6px">' + num(missed, 'ask', 'asks') + ' in your claimed industries found nothing from you. What was asked stays with Google; the gap grid on the left is the fix.</div></div></aside></div></div>';
+}
+function libraryView() {
+  const P = partner(S.role.partnerId); if (!P) return '';
+  const mine = S.assets.filter(a => a.partnerId === P.id && a.status !== 'archived');
+  const TABS = ['All', 'live', 'expiring', 'pending', 'returned', 'expired', 'draft'];
+  const rows = mine.filter(a => S.ui.libTab === 'All' || effStatus(a) === S.ui.libTab).sort((a, b) => (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+  return '<div class="col" style="gap:14px"><div class="row between"><div><h1>Library</h1><p class="muted small">Live and Expiring are searchable. Everything else is yours to fix.</p></div><a class="btn primary" href="#upload" data-act="upload-fresh">Upload assets</a></div>' +
+    '<div class="tabs">' + TABS.map(t => '<button data-act="libtab" data-v="' + t + '" class="' + (S.ui.libTab === t ? 'on' : '') + '">' + (t === 'All' ? 'All' : t.charAt(0).toUpperCase() + t.slice(1)) + ' · ' + mine.filter(a => t === 'All' || effStatus(a) === t).length + '</button>').join('') + '</div>' +
+    '<div class="table"><table><thead><tr><th>Asset</th><th>Type</th><th>Tags</th><th>Valid until</th><th>Status</th><th>Action</th></tr></thead><tbody>' + (rows.length ? rows.map(a => { const s = effStatus(a); return '<tr><td><a href="#asset-' + h(a.id) + '" style="font-weight:600;color:var(--ink)">' + h(a.title) + '</a><div class="tiny faint">v' + (a.version || 1) + (a.fileName ? ' · ' + h(a.fileName) : '') + '</div></td><td>' + h(SHORT[a.type]) + '</td><td class="small muted">' + h(a.industry) + ' · ' + h(a.usecase) + ' · ' + h(a.region) + '</td><td class="num">' + h(fmtDate(a.validUntil)) + '</td><td>' + badge(s) + (s === 'pending' ? '<div class="tiny faint">day ' + (daysSince(a.submittedAt) + 1) + ' of ' + S.settings.reviewTargetDays + '</div>' : '') + '</td><td>' + (s === 'expiring' || s === 'expired' ? '<button class="btn sm" data-act="renew" data-id="' + h(a.id) + '">Renew</button>' : s === 'pending' ? '<button class="btn sm" data-act="withdraw" data-id="' + h(a.id) + '">Withdraw</button>' : s === 'returned' || s === 'draft' ? '<a class="btn sm" href="#upload" data-act="upload-replace" data-id="' + h(a.id) + '">' + (s === 'draft' ? 'Finish' : 'Fix') + '</a>' : '<a class="btn sm" href="#upload" data-act="upload-replace" data-id="' + h(a.id) + '">Replace</a>') + '</td></tr>'; }).join('') : '<tr><td colspan="6" class="muted">Nothing here.</td></tr>') + '</tbody></table></div></div>';
+}
+
+// ---- Upload ----
+function uploadView() {
+  const P = partner(S.role.partnerId); if (!P) return '';
+  if (!S.form.upload) S.form.upload = { step: 1, files: [], tags: { title: '', type: 'Case study', usecase: 'Gemini for customer experience', industry: 'Financial Services', region: 'Indonesia', lob: 'Customer service and CX', language: 'English', validUntil: addMonths(new Date(), 12), extEvents: true, extPublishing: false, summary: '', notes: '' }, replacesId: '', done: null };
+  const F = S.form.upload; const T = F.tags;
+  const step = (n, l) => '<span class="s ' + (F.step === n ? 'on' : F.step > n ? 'done' : '') + '"><span class="n">' + n + '</span>' + l + '</span>';
+  const steps = '<div class="steps">' + step(1, 'Files') + '<span class="bar"></span>' + step(2, 'Tags') + '<span class="bar"></span>' + step(3, 'Review') + '</div>';
+  let body;
+  const replaceable = S.assets.filter(a => a.partnerId === P.id && ['live', 'returned', 'draft'].includes(a.status));
+  if (F.done) body = '<div class="card col" style="gap:10px;border-color:var(--ink);max-width:640px"><div class="row">' + badge('pending') + '<strong style="font-size:17px">' + num(F.done.count, 'asset submitted', 'assets submitted') + '</strong></div><p>Your partner manager, ' + h(P.managerName || '[name]') + ', has them in the queue. Target decision within ' + S.settings.reviewTargetDays + ' working days. A returned asset comes back with a note and lands in your to-do.</p><p class="small muted">Until approved they are hidden from Google\'s search. ' + (F.done.replaced ? 'The current version stays live meanwhile.' : '') + '</p><div class="row"><a class="btn primary" href="#partner-home">Back to home</a><button class="btn" data-act="upload-fresh">Upload more</button></div></div>';
+  else if (F.step === 1) body = '<div class="col" style="gap:14px"><label class="drop"><strong style="font-size:16px">Drop files here, or browse</strong><span class="small muted">PDF, PNG, JPG, MP4, CSV, Markdown up to 20 MB each. PPTX and DOCX are kept as references in this prototype.' + (S.cap.assets ? '' : ' File storage is not switched on for your access level here, so the record is registered with the file name and your partner manager attaches the file.') + '</span><input type="file" multiple data-field="upload.files" style="margin-top:6px"></label>' +
+    (F.files.length ? '<div class="table" style="overflow:hidden">' + F.files.map((f, i) => '<div class="arow" style="padding:10px 14px;border-top:0;border-bottom:1px solid var(--line)"><div class="thumb" style="width:48px;height:34px;font-size:9px">' + h((f.name.split('.').pop() || '').slice(0, 4)) + '</div><div class="grow"><strong>' + h(f.name) + '</strong><div class="tiny muted">' + (f.size / 1048576).toFixed(1) + ' MB' + (FILE_TYPES[(f.name.split('.').pop() || '').toLowerCase()] ? '' : ' · stored as a reference, not uploaded') + '</div></div><button class="pill" style="min-height:32px;padding:0 4px" data-act="file-x" data-i="' + i + '" aria-label="Remove ' + h(f.name) + '"><button type="button" tabindex="-1">×</button></button></div>').join('') + '</div>' : '') +
+    '<label class="f" style="max-width:520px">Replaces an existing asset? <span class="hint">the old version stays live until the new one is approved</span><select class="in" data-field="upload.replacesId"><option value="">No, this is new</option>' + replaceable.map(a => '<option value="' + h(a.id) + '"' + (F.replacesId === a.id ? ' selected' : '') + '>' + h(a.title) + ' · v' + (a.version || 1) + ' · ' + h(effStatus(a)) + '</option>').join('') + '</select></label>' +
+    '<div class="row between" style="border-top:1px solid var(--line);padding-top:12px"><a class="btn ghost" href="#partner-home">Cancel</a><div class="row"><button class="btn" data-act="upload-nofile">No file, metadata only</button><button class="btn primary" data-act="upload-next"' + (F.files.length ? '' : ' disabled') + '>Next · tags</button></div></div></div>';
+  else if (F.step === 2) {
+    const sel = (field, list, val) => '<select class="in" data-field="upload.tags.' + field + '">' + list.map(o => '<option' + (val === o ? ' selected' : '') + '>' + h(o) + '</option>').join('') + '</select>';
+    const ucSel = '<select class="in" data-field="upload.tags.usecase">' + Object.keys(SOLUTIONS).map(s => '<optgroup label="' + h(s) + '">' + SOLUTIONS[s].map(u => '<option' + (T.usecase === u ? ' selected' : '') + '>' + h(u) + '</option>').join('') + '</optgroup>').join('') + '</select>';
+    body = '<form class="col" style="gap:16px"><div class="row between"><div class="small muted">Tagging ' + (F.files.length ? h(F.files.map(f => f.name).join(', ')) : 'one asset without a file') + (F.files.length > 1 ? ' · the same tags apply to every file, adjust the odd one after submitting' : '') + '</div>' + (S.cap.sample && !S.ai.disabled ? '<button type="button" class="btn sm" data-act="suggest"' + (S.form.suggesting ? ' disabled' : '') + '>' + (S.form.suggesting ? 'Thinking…' : 'Suggest tags and summary') + '</button>' : '') + '</div>' +
+      '<div class="fgrid"><label class="f" style="grid-column:1/-1">Title *<input class="in" data-field="upload.tags.title" value="' + h(T.title) + '" placeholder="Customer — what it shows"></label>' +
+      '<label class="f">Asset type *' + sel('type', TYPES, T.type) + '</label><label class="f">Use case * <span class="hint">solution category fills itself: ' + h(SOLUTION_OF[T.usecase] || '') + '</span>' + ucSel + '</label>' +
+      '<label class="f">Industry *' + sel('industry', INDUSTRIES, T.industry) + '</label><label class="f">Region *' + sel('region', REGIONS, T.region) + '</label>' +
+      '<label class="f">Line of business <span class="hint">suggested from the use case</span>' + sel('lob', LOBS, T.lob) + '</label><label class="f">Language<input class="in" data-field="upload.tags.language" value="' + h(T.language) + '"></label>' +
+      '<label class="f">Valid until * <span class="hint">12 months by default, reminder ' + S.settings.expiryWarnDays + ' days before</span><input class="in" type="date" data-field="upload.tags.validUntil" value="' + h(T.validUntil) + '"></label>' +
+      '<div class="col" style="gap:4px"><span style="font-size:13px;font-weight:600">External use <span class="muted" style="font-weight:400">everything here is Google internal</span></span><label class="check"><input type="checkbox" data-field="upload.tags.extEvents" ' + (T.extEvents ? 'checked' : '') + '>Customer approved for events and roundtables</label><label class="check"><input type="checkbox" data-field="upload.tags.extPublishing" ' + (T.extPublishing ? 'checked' : '') + '>Customer approved for Google external publishing</label></div>' +
+      '<label class="f" style="grid-column:1/-1">Summary, up to 50 words * <span class="hint">what search reads after the title and tags</span><textarea class="in" rows="3" data-field="upload.tags.summary" placeholder="What the asset shows, who it is for, the outcome.">' + h(T.summary) + '</textarea><span class="tiny faint" style="text-align:right;font-weight:400">' + (T.summary.trim() ? T.summary.trim().split(/\s+/).length : 0) + ' of 50 words</span></label>' +
+      '<label class="f" style="grid-column:1/-1">Notes for the model, optional <span class="hint">not stored, only used by Suggest</span><input class="in" data-field="upload.tags.notes" value="' + h(T.notes) + '" placeholder="e.g. interview with the bank\'s head of digital, Bahasa with English subtitles"></label></div>' +
+      '<div class="row between" style="border-top:1px solid var(--line);padding-top:12px"><button type="button" class="btn ghost" data-act="upload-back">Back · files</button><button type="button" class="btn primary" data-act="upload-next"' + (T.title.trim() && T.summary.trim() ? '' : ' disabled') + '>Next · review</button></div></form>';
+  } else {
+    const rep = F.replacesId ? byId(S.assets, F.replacesId) : null; const n = Math.max(1, F.files.length);
+    body = '<div class="col" style="gap:14px"><div class="small muted">Check the tags, then submit. ' + h(P.managerName || 'Your partner manager') + ' reviews within ' + S.settings.reviewTargetDays + ' working days. Until then the assets are hidden from search' + (rep ? ', ' + h(rep.title) + ' v' + (rep.version || 1) + ' stays live meanwhile' : '') + '.</div>' +
+      '<div class="table"><table><thead><tr><th>Asset</th><th>Type</th><th>Tags</th><th>Valid until</th><th>Will</th></tr></thead><tbody>' + (F.files.length ? F.files : [{ name: '(no file)' }]).map(f => '<tr><td><strong>' + h(T.title) + '</strong><div class="tiny faint">' + h(f.name) + '</div></td><td>' + h(T.type) + '</td><td class="small muted">' + h(T.industry) + ' · ' + h(T.usecase) + ' · ' + h(T.lob) + ' · ' + h(T.region) + '</td><td>' + h(fmtDate(T.validUntil)) + '</td><td class="small muted">' + (rep ? 'replace v' + (rep.version || 1) + ' once approved' : 'be new') + '</td></tr>').join('') + '</tbody></table></div>' +
+      '<div class="row between" style="border-top:1px solid var(--line);padding-top:12px"><button class="btn ghost" data-act="upload-back">Back · tags</button><div class="row"><button class="btn" data-act="upload-draft"' + (F.busy ? ' disabled' : '') + '>Save as draft</button><button class="btn primary" data-act="upload-submit"' + (F.busy ? ' disabled' : '') + '>' + (F.busy ? 'Uploading…' : 'Submit ' + n + ' for review') + '</button></div></div></div>';
+  }
+  return '<div class="col" style="gap:20px;max-width:960px"><div class="row between"><h1>Upload assets</h1>' + steps + '</div>' + body + '</div>';
+}
+
+// ---- Digest preview ----
+function digestView() {
+  const P = partner(S.role.partnerId); if (!P) return '';
+  const mine = S.assets.filter(a => a.partnerId === P.id && a.status !== 'archived');
+  const expg = mine.filter(a => effStatus(a) === 'expiring'); const ret = mine.filter(a => a.status === 'returned'); const exp = expectedFor(P); const miss = exp.filter(c => c.state === 'missing');
+  const st = statsOf(P.id); const dl = { length: Object.values(st.downloads || {}).reduce((n, v) => n + v, 0) };
+  const kitsIn = Object.values(st.kits || {}).filter(v => v > 0).length;
+  const missed = st.missed || 0;
+  const month = new Date(); month.setMonth(month.getMonth() + 1);
+  const row = (b, t, w, href, l) => '<div class="row" style="padding:8px 0;border-top:1px solid var(--line)">' + b + '<span class="grow"><span style="display:block;font-weight:600">' + h(t) + '</span>' + (w ? '<span class="small muted">' + h(w) + '</span>' : '') + '</span><a href="' + href + '" style="font-weight:600;font-size:13px">' + l + '</a></div>';
+  return '<div class="col" style="gap:14px"><div><h1>Digest preview</h1><p class="muted small">What goes to every partner marketing user at ' + h(P.name) + ' on the ' + S.settings.digestDay + 'st, built from the library as it is right now. Expiry warnings also go out ' + S.settings.expiryWarnDays + ' days ahead, then weekly.</p></div>' +
+    '<div class="email"><div class="meta"><span>From</span><span>GPM Hub · no-reply</span><span>To</span><span>Partner marketing · ' + h(P.name) + '</span><span>Subject</span><strong style="color:var(--ink)">' + h(P.name) + ' on GPM Hub · ' + expg.length + ' expiring, ' + ret.length + ' returned, ' + miss.length + ' missing · ' + dl.length + ' downloads</strong></div><div class="body">' +
+    '<div class="brand"><span class="mark"></span>GPM Hub · ' + h(month.toLocaleDateString('en-GB', { month: 'long' })) + ' digest</div>' +
+    '<div><div style="font-size:19px;font-weight:700;letter-spacing:-0.01em;line-height:1.25">You were downloaded ' + dl.length + ' times. ' + (expg.length + ret.length + miss.length) + ' things keep that going.</div><div class="small muted" style="margin-top:4px">Ordered by what it costs you in Google\'s search. Each line opens the fix.</div></div>' +
+    (expg.length ? '<div><div class="eyebrow">Expiring · ' + expg.length + '</div>' + expg.map(a => row(badge('expiring', fmtDate(a.validUntil)), a.title, 'In ' + num(inKitsCount(a.id), 'live kit', 'live kits') + ' · ' + downloadsOf(a.id) + ' downloads', '#library', 'Renew')).join('') + '</div>' : '') +
+    (ret.length ? '<div><div class="eyebrow">Returned · ' + ret.length + '</div>' + ret.map(a => row(badge('returned'), a.title, '“' + (a.returnNote || 'see note') + '”', '#upload', 'Fix')).join('') + '</div>' : '') +
+    (miss.length ? '<div><div class="eyebrow">Missing · ' + miss.length + ' of ' + exp.length + ' expected items</div>' + miss.map(c => row(badge('missing'), c.label.replace(/^(\w)/, m => m.toUpperCase()), '', '#upload', 'Add')).join('') + '</div>' : '') +
+    '<div><div class="eyebrow">How you were found</div><div class="tiles" style="margin-top:8px"><div class="tile"><div class="v">' + dl.length + '</div><div class="l">downloads</div></div><div class="tile"><div class="v">' + kitsIn + '</div><div class="l">assets of yours in kits</div></div><div class="tile"><div class="v">' + missed + '</div><div class="l">asks that missed you</div></div></div></div>' +
+    '<div class="row" style="border-top:1px solid var(--line);padding-top:12px"><a class="btn primary" href="#partner-home">Open your to-do</a><span class="tiny faint">Program requirement, no unsubscribe. You can add recipients.</span></div></div></div></div>';
+}
+
+// ---- Queue (partner manager) ----
+function queueView() {
+  const q = S.assets.filter(a => a.status === 'pending').sort((a, b) => (a.submittedAt || '').localeCompare(b.submittedAt || ''));
+  const sel = byId(q, S.ui.queueSel) || q[0] || null;
+  const day = a => daysSince(a.submittedAt) + 1;
+  const turn = S.assets.filter(a => a.verifiedAt && a.submittedAt).map(a => (new Date(a.verifiedAt) - new Date(a.submittedAt)) / 86400000).sort((x, y) => x - y);
+  const med = turn.length ? turn[Math.floor(turn.length / 2)].toFixed(1) : '—';
+  const ck = (sel && S.form.checks && S.form.checks[sel.id]) || {}; const canApprove = ck.c1 && ck.c2;
+  const rep = sel && sel.replacesId ? byId(S.assets, sel.replacesId) : null;
+  const src = sel && sel.fileAssetId ? '/_blob/' + sel.fileAssetId : '';
+  return '<div class="split"><aside class="col" style="gap:10px"><div class="row between"><h1>Queue · ' + q.length + '</h1></div><div class="tiny muted">Target ' + S.settings.reviewTargetDays + ' working days · nudge at day ' + S.settings.nudgeDay + ' · oldest ' + (q.length ? day(q[0]) + ' days' : '—')  + '</div>' +
+    (q.length ? q.map(a => '<button class="qitem ' + (sel && sel.id === a.id ? 'on' : '') + '" data-act="qsel" data-id="' + h(a.id) + '"><span class="row between tiny muted" style="width:100%"><span>' + h(partnerName(a.partnerId)) + '</span><span style="' + (day(a) >= S.settings.nudgeDay ? 'color:var(--warn);font-weight:600' : '') + '">day ' + day(a) + ' of ' + S.settings.reviewTargetDays + '</span></span><strong>' + h(a.title) + '</strong><span class="tiny muted">' + h(SHORT[a.type]) + ' · ' + (a.replacesId ? 'replaces v' + ((byId(S.assets, a.replacesId) || {}).version || 1) : 'new') + '</span></button>').join('') : '<div class="empty" style="align-items:center;text-align:center"><strong>Queue clear</strong><span class="small muted">Approved assets are live in Ask. Returned ones are in the partners\' to-do lists.</span></div>') + '</aside>' +
+    '<section class="col" style="gap:14px">' + (sel ? '<div class="card col" style="gap:14px"><div class="row between" style="align-items:flex-start"><div><div class="tiny muted">' + h(partnerName(sel.partnerId)) + ' · submitted ' + h(fmtDate(sel.submittedAt)) + '</div><h2 style="font-size:20px;margin-top:2px">' + h(sel.title) + '</h2><div class="small muted" style="margin-top:4px">' + h(sel.type) + ' · ' + h(sel.fileName || 'no file') + ' · ' + (rep ? 'replaces v' + (rep.version || 1) : 'new') + '</div></div>' + badge('pending', 'day ' + day(sel)) + '</div>' +
+    '<div class="two" style="grid-template-columns:minmax(0,1fr) 280px"><div class="col"><div class="thumb" style="aspect-ratio:16/9;max-width:100%;font-size:13px;text-transform:none;letter-spacing:0">' + (src && /^image\//.test(sel.fileType || '') ? '<img src="' + h(src) + '" alt="">' : src && /^video\//.test(sel.fileType || '') ? '<video src="' + h(src) + '" controls></video>' : src ? '<a class="btn" href="' + h(src) + '" target="_blank" rel="noopener">Open ' + h(sel.fileName) + '</a>' : '<span>' + h(sel.fileName ? sel.fileName + ' · reference only' : 'No file, metadata only') + '</span>') + '</div><div class="small"><strong>Summary.</strong> ' + h(sel.summary) + '</div>' + (rep ? '<div class="tiny muted card soft">Replaces <a href="#asset-' + h(rep.id) + '">' + h(rep.title) + ' v' + (rep.version || 1) + '</a>. The old version stays live until you approve.</div>' : '') + '</div>' +
+    '<dl class="dl" style="grid-template-columns:90px minmax(0,1fr);font-size:13px"><dt>Use case</dt><dd>' + h(sel.usecase) + '</dd><dt>Industry</dt><dd>' + h(sel.industry) + '</dd><dt>LOB</dt><dd>' + h(sel.lob || '—') + '</dd><dt>Region</dt><dd>' + h(sel.region) + '</dd><dt>Valid until</dt><dd>' + h(fmtDate(sel.validUntil)) + '</dd><dt>External use</dt><dd>' + (sel.extEvents ? 'events' : 'internal') + (sel.extPublishing ? ', publishing' : '') + '</dd></dl></div>' +
+    '<div class="col" style="gap:8px;border-top:1px solid var(--line);padding-top:12px"><span class="eyebrow">Checks</span><label class="check"><input type="checkbox" data-field="checks.' + h(sel.id) + '.c1" ' + (ck.c1 ? 'checked' : '') + '>Tags match the content, use case and industry are right</label><label class="check"><input type="checkbox" data-field="checks.' + h(sel.id) + '.c2" ' + (ck.c2 ? 'checked' : '') + '>Google Cloud products and claims are accurate, nothing we can\'t stand behind</label>' +
+    (S.ui.returning ? '<form class="card col" style="gap:8px;border-color:var(--ink)"><label class="f">Reason<select class="in" data-field="ret.reason">' + ['Tags don\'t match the content', 'Missing the Google Cloud architecture page', 'Customer approval not evidenced', 'Outdated product names', 'Other, see note'].map(o => '<option' + ((S.form.ret || {}).reason === o ? ' selected' : '') + '>' + h(o) + '</option>').join('') + '</select></label><label class="f">Note to the partner, they see it in their to-do and digest<textarea class="in" rows="2" data-field="ret.note">' + h((S.form.ret || {}).note || '') + '</textarea></label><div class="row"><button class="btn primary" data-act="return-send" data-id="' + h(sel.id) + '">Return to ' + h(partnerName(sel.partnerId)) + '</button><button type="button" class="btn ghost" data-act="return-cancel">Cancel</button></div></form>' :
+      '<div class="row" style="padding-top:4px"><button class="btn primary" data-act="approve" data-id="' + h(sel.id) + '"' + (canApprove ? '' : ' disabled') + '>Approve, make it live</button><button class="btn" data-act="return-start">Return with a note</button><span class="tiny faint">' + (canApprove ? 'live in Ask within the minute, the partner is told' : 'both checks first') + '</span></div>') + '</div></div>' : '') +
+    '<div class="row small muted" style="gap:16px"><span>Median turnaround: <strong style="color:var(--ink)">' + med + ' days</strong></span><span>Returned rate: <strong style="color:var(--ink)">' + (function () { const v = S.assets.filter(a => a.verifiedAt).length, r = S.assets.filter(a => a.status === 'returned').length; return v + r ? Math.round(100 * r / (v + r)) + '%' : '—'; })() + '</strong></span><span>Phase 2 adds capability claims to this same queue</span></div></section></div>';
+}
+function adminPartners() {
+  const F = S.form.newPartner; const A = S.assign;
+  const assignBox = A.partnerId ? '<form class="card col" style="gap:10px;border-color:var(--ink)"><strong>Add a partner marketer to ' + h(partnerName(A.partnerId)) + '</strong><div class="small muted">Search your organisation\'s directory. The person gets view access to this page and sees only ' + h(partnerName(A.partnerId)) + '\'s library.</div><label class="f">Name or email<input id="assignQ" class="in" data-field="assign.q" value="' + h(A.q) + '" placeholder="Start typing a name" autocomplete="off"></label>' + (A.hits.length ? '<div class="col" style="gap:4px">' + A.hits.map(p => '<button type="button" class="qitem" data-act="assign-pick" data-id="' + h(p.id) + '" data-partner="' + h(A.partnerId) + '"><strong>' + h(p.name || 'Someone') + '</strong>' + (p.email ? '<span class="tiny muted">' + h(p.email) + '</span>' : '') + '</button>').join('') + '</div>' : (A.q ? '<span class="small muted">No match yet, keep typing.</span>' : '')) + '<div class="row"><button type="button" class="btn ghost" data-act="assign-cancel">Close</button></div></form>' : '';
+  const members = pid => S.roles.filter(r => r.partnerId === pid && r.kind === 'partner');
+  return '<div class="col" style="gap:14px"><div class="row between"><div><h1>Partners</h1><p class="muted small">Who is in the program, what they claim, what they owe, and which people may upload for them.</p></div><button class="btn primary" data-act="np-open">Add partner</button></div>' + assignBox +
+    (F ? '<form class="card col" style="gap:10px;border-color:var(--ink)"><strong>New partner</strong><div class="fgrid"><label class="f">Name *<input class="in" data-field="newPartner.name" value="' + h(F.name || '') + '"></label><label class="f">One-line positioning<input class="in" data-field="newPartner.line" value="' + h(F.line || '') + '"></label><label class="f">Partner manager<input class="in" data-field="newPartner.managerName" value="' + h(F.managerName || '') + '"></label><label class="f">Partner marketing contact<input class="in" data-field="newPartner.contact" value="' + h(F.contact || '') + '"></label><label class="f">Claimed solutions <span class="hint">comma separated, from the solution list</span><input class="in" data-field="newPartner.solutions" value="' + h(F.solutions || '') + '" placeholder="Artificial Intelligence, Data Analytics"></label><label class="f">Claimed industries<input class="in" data-field="newPartner.industries" value="' + h(F.industries || '') + '" placeholder="Financial Services, Retail"></label></div><div class="row"><button class="btn primary" data-act="np-save"' + ((F.name || '').trim() ? '' : ' disabled') + '>Add</button><button type="button" class="btn ghost" data-act="np-cancel">Cancel</button></div></form>' : '') +
+    '<div class="table"><table><thead><tr><th>Partner</th><th>Claims</th><th>Live</th><th>Pending</th><th>Expected</th><th>Last verified</th><th>People</th><th></th></tr></thead><tbody>' + S.partners.map(p => { const mine = S.assets.filter(a => a.partnerId === p.id); const live = mine.filter(searchable).length; const pend = mine.filter(a => a.status === 'pending').length; const exp = expectedFor(p); const have = exp.filter(c => c.state === 'live' || c.state === 'expiring').length; const last = mine.filter(a => a.verifiedAt).map(a => a.verifiedAt).sort().pop(); const stale = last && daysSince(last) > S.settings.escalateDays; const ms = members(p.id); return '<tr><td><a href="#partner-' + h(p.id) + '" style="font-weight:600;color:var(--ink)">' + h(p.name) + '</a>' + (p.status === 'invited' ? ' <span class="badge draft">Invited</span>' : '') + '<div class="tiny faint">' + h(p.managerName || '') + '</div></td><td class="small muted">' + ((p.claims || {}).solutions || []).length + ' solutions, ' + ((p.claims || {}).industries || []).length + ' industries</td><td class="num">' + live + '</td><td class="num">' + pend + '</td><td class="num' + (have < exp.length ? ' muted' : '') + '">' + have + ' of ' + exp.length + '</td><td class="' + (stale ? '' : 'muted') + '" style="' + (stale ? 'color:var(--warn);font-weight:600' : '') + '">' + (last ? h(fmtDate(last)) + (stale ? ' · escalated' : '') : '—') + '</td><td class="small">' + (ms.length ? ms.map(m => '<span class="pill" style="min-height:28px;margin:2px 2px 2px 0">' + h(S.profiles[m.id] || 'Someone') + '<button type="button" data-act="assign-remove" data-id="' + h(m.id) + '" aria-label="Remove">×</button></span>').join('') : '<span class="muted">none</span>') + '<div><button class="btn ghost sm" data-act="assign-open" data-partner="' + h(p.id) + '">Add person</button></div></td><td><a class="btn sm" href="#partner-' + h(p.id) + '">Open</a></td></tr>'; }).join('') + '</tbody></table></div>' +
+    '<p class="tiny faint">Access in this prototype: people with edit rights on this page are the Google side and see every role. People with view rights are partner marketers and see only the partner they are added to here. Asks, kits and the log are unreadable to view-level accounts by rule, not just hidden.</p></div>';
+}
+function adminTaxonomy() {
+  return '<div class="col" style="gap:16px"><div><h1>Taxonomy</h1><p class="muted small">Industry and solution lists are Google Cloud\'s own, read-only here and re-synced quarterly in the build. Region and line of business are editable program lists.</p></div><div class="fgrid">' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">Industry · ' + (INDUSTRIES.length - 1) + ' + All industries</span><div class="small muted">' + h(INDUSTRIES.join(', ')) + '</div></div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">Solution › use case · ' + Object.keys(SOLUTIONS).length + ' › ' + USECASES.length + '</span><div class="small muted">' + Object.keys(SOLUTIONS).map(s => '<strong style="color:var(--ink)">' + h(s) + '</strong>: ' + h(SOLUTIONS[s].join(', '))).join('<br>') + '</div></div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">Region · ' + REGIONS.length + '</span><div class="small muted">' + h(REGIONS.join(', ')) + '</div></div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">Line of business · ' + LOBS.length + '</span><div class="small muted">' + h(LOBS.join(', ')) + '</div><div class="tiny faint">Each use case carries a default LOB, partners confirm or change it on upload.</div></div>' +
+    '<div class="card col" style="gap:6px;grid-column:1/-1"><span class="eyebrow">Asset types · ' + TYPES.length + ' · expected set</span><div class="small muted">' + h(TYPES.join(', ')) + '</div><div class="small">Expected per partner: a deck, a flier and an architecture for each claimed solution, a case study for each claimed industry, one video. Claims are partner-declared in phase 1, verified by the partner manager in phase 2.</div></div></div></div>';
+}
+function adminSettings() {
+  const F = S.form.settings || Object.assign({}, S.settings);
+  const f = (k, l, hint) => '<label class="f">' + l + (hint ? ' <span class="hint">' + hint + '</span>' : '') + '<input class="in" type="number" min="1" data-field="settings.' + k + '" value="' + h(F[k]) + '" style="max-width:140px"></label>';
+  return '<div class="col" style="gap:16px;max-width:640px"><div><h1>Reminders and review</h1><p class="muted small">The cadence behind the digest, the expiry warnings and the queue nudges. Saved for everyone.</p></div><form class="card col" style="gap:14px">' + f('digestDay', 'Monthly digest day') + f('expiryWarnDays', 'Expiry warning, days before') + f('reviewTargetDays', 'Review target, working days') + f('nudgeDay', 'Nudge the partner manager at day') + f('escalateDays', 'Escalate a stale partner after, days') + '<div class="row"><button class="btn primary" data-act="settings-save">Save</button><span class="tiny faint">Takes effect for every viewer on the next load.</span></div></form></div>';
+}
+function adminUsage() {
+  const ev = events(); const cut = Date.now() - 30 * 86400000; const recent = ev.filter(e => new Date(e.t) > cut);
+  const asks = recent.filter(e => e.kind === 'ask'); const none = asks.filter(e => e.results === 0); const dls = recent.filter(e => e.kind === 'download');
+  const byP = {}; dls.forEach(e => byP[e.partnerId] = (byP[e.partnerId] || 0) + 1);
+  const facets = { partner: 0, usecase: 0, solution: 0, industry: 0, lob: 0, region: 0, type: 0 }; asks.forEach(e => Object.keys(facets).forEach(k => { if (e[k]) facets[k]++; }));
+  const turn = S.assets.filter(a => a.verifiedAt && a.submittedAt).map(a => (new Date(a.verifiedAt) - new Date(a.submittedAt)) / 86400000).sort((x, y) => x - y);
+  const med = turn.length ? turn[Math.floor(turn.length / 2)].toFixed(1) + ' d' : '—';
+  const upd = S.partners.filter(p => S.assets.some(a => a.partnerId === p.id && a.verifiedAt && daysSince(a.verifiedAt) <= 90)).length;
+  const tile = (v, l) => '<div class="tile"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>';
+  return '<div class="col" style="gap:18px"><div><h1>Usage, last 30 days</h1><p class="muted small">From the engagement log this page writes on every ask, download, request and decision. The same log is the phase-3 dataset.</p></div>' +
+    '<div class="tiles">' + tile(asks.length, 'asks') + tile(none.length, 'asks with no result') + tile(dls.length, 'downloads') + tile(S.kits.length, 'kits') + tile(upd + ' <span class="muted" style="font-size:14px;font-weight:500">of ' + S.partners.length + '</span>', 'partners verified in 90 days') + tile(med, 'median review turnaround') + '</div>' +
+    '<div class="fgrid"><div class="card col" style="gap:6px"><span class="eyebrow">Asks with no result</span><div class="tiny faint">The taxonomy and partner-recruitment input.</div>' + (none.length ? none.slice(-8).reverse().map(e => '<div class="row between small" style="border-top:1px solid var(--line);padding:6px 0"><span class="grow">“' + h(e.text) + '”</span><span class="faint tiny">' + h(fmtDate(e.t)) + '</span></div>').join('') : '<span class="small muted">None yet.</span>') + '</div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">Downloads by partner</span>' + (Object.keys(byP).length ? Object.keys(byP).sort((a, b) => byP[b] - byP[a]).map(id => '<div class="row between small" style="border-top:1px solid var(--line);padding:6px 0"><span>' + h(partnerName(id)) + '</span><strong class="num">' + byP[id] + '</strong></div>').join('') : '<span class="small muted">None yet.</span>') + '</div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">What the asks carried</span><div class="tiny faint">Share of asks where the model read each facet. This is what sets the taxonomy priorities.</div>' + Object.keys(facets).map(k => '<div class="row between small" style="border-top:1px solid var(--line);padding:6px 0"><span>' + h({ partner: 'Partner named', usecase: 'Use case', solution: 'Solution only', industry: 'Industry', lob: 'Line of business', region: 'Region', type: 'Asset type' }[k]) + '</span><strong class="num">' + (asks.length ? Math.round(100 * facets[k] / asks.length) : 0) + '%</strong></div>').join('') + '</div>' +
+    '<div class="card col" style="gap:6px"><span class="eyebrow">Roadmap hooks already in the data</span><div class="small muted">Every ask logs its reading and which partners it returned. Every kit, download and request names the partner and asset. Claims sit on the partner record. Phase 2 reads claims and assets into a strength profile, phase 3 joins the log with engagement outcomes to score suitability. Nothing has to be re-collected.</div></div></div></div>';
+}
+
+// ───────────────────────── actions ─────────────────────────
+function setPath(obj, path, val) { const ks = path.split('.'); let o = obj; for (let i = 0; i < ks.length - 1; i++) { if (o[ks[i]] == null || typeof o[ks[i]] !== 'object') o[ks[i]] = {}; o = o[ks[i]]; } o[ks[ks.length - 1]] = val; }
+function onInput(e) {
+  // The role switcher is a <select>: it reports a new value through 'change', never through 'click'.
+  const sel = e.target.closest('[data-act="role"]'); if (sel) { if (e.type === 'change') applyRole(sel.value); return; }
+  const el = e.target.closest('[data-field]'); if (!el) return;
+  const path = el.dataset.field;
+  let val = el.type === 'checkbox' ? el.checked : el.type === 'file' ? Array.from(el.files || []) : el.value;
+  if (path.startsWith('ask.')) { setPath(S.ask, path.slice(4), val); if (path === 'ask.showPending') render(); return; }
+  if (path === 'assign.q') { S.assign.q = val; if (S.cap.user) { S.cap.user.search(val).then(hits => { if (S.assign.q === val) { S.assign.hits = hits.filter(p => !S.roles.some(r => r.id === p.id)).slice(0, 8); render(); } }).catch(() => { }); } return; }
+  if (path === 'upload.files') { S.form.upload.files = (S.form.upload.files || []).concat(val); render(); return; }
+  setPath(S.form, path, val);
+  if (path === 'upload.tags.usecase' && LOB_DEFAULT[val]) { S.form.upload.tags.lob = LOB_DEFAULT[val]; render(); }
+  if (path.startsWith('checks.') || path === 'upload.tags.summary' || path === 'upload.tags.title' || path.startsWith('newPartner.') || path === 'upload.replacesId') { if (e.type === 'change' || path.startsWith('checks.')) render(); }
+}
+function onKey(e) { if (e.key === 'Enter' && e.target.id === 'ask') { e.preventDefault(); submitAsk(); } }
+function submitAsk() { const t = (S.ask.draft || '').trim(); if (!t) { S.ask.facets = null; render(); return; } interpret(t); }
+async function onClick(e) {
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act; const id = el.dataset.id; const db = S.cap.db;
+  const label = S.meName || (S.role.kind === 'field' ? 'A field marketer' : S.role.kind === 'pm' ? 'Partner manager' : partnerName(S.role.partnerId));
+  try {
+    switch (act) {
+      case 'role': return; // handled on 'change' in onInput
+      case 'ask': e.preventDefault(); submitAsk(); return;
+      case 'example': S.ask.draft = el.dataset.text; interpret(S.ask.draft); return;
+      case 'chip-x': { const f = Object.assign({}, S.ask.facets); const k = el.dataset.key; if (k === 'words') f.words = []; else f[k] = null; if (k === 'usecase') f.solution = null; if (!f.partner && !f.usecase && !f.solution && !f.industry && !f.region && !f.type && !f.lob && !f.words.length) { S.ask.facets = null; S.ask.draft = ''; } else S.ask.facets = f; S.ask.requested = false; render(); return; }
+      case 'ref': { const f = Object.assign({}, S.ask.facets); const k = el.dataset.key; f[k] = el.dataset.v || null; if (k === 'partner' && !f.usecase && !f.solution && !f.industry && !f.region && !f.type) f.solution = 'Artificial Intelligence'; S.ask.facets = f; S.ask.requested = false; render(); return; }
+      case 'ref-clear': { const f = Object.assign({}, S.ask.facets); f.usecase = null; f.solution = null; f.industry = null; f.region = null; f.type = null; f.lob = null; f.words = []; S.ask.facets = f; render(); return; }
+      case 'toggle-pending': S.ask.showPending = !S.ask.showPending; render(); return;
+      case 'kit-open': S.ask.kitOpen = !S.ask.kitOpen; render(); return;
+      case 'kit-toggle': { e.preventDefault(); await toggleKit(id); return; }
+      case 'kit-remove': { const k = byId(S.kits, el.dataset.kit); if (!k) return; await db.doc('kits/' + k.id).update({ items: (k.items || []).filter(x => x !== id), updatedAt: nowIso() }); return; }
+      case 'kit-new': { const ref = await db.collection('kits').add({ name: 'New kit ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), ownerId: S.uid || 'anon', items: [], note: '', createdAt: nowIso(), updatedAt: nowIso() }); S.kitId = ref.id; try { localStorage.setItem('gpm.kit', ref.id); } catch (x) { } S.form.rename = ref.id; S.form.renameVal = ''; go('kits'); return; }
+      case 'kit-pick': S.kitId = id; try { localStorage.setItem('gpm.kit', id); } catch (x) { } S.form.rename = null; if (S.route.startsWith('kit-')) go('kits'); else render(); return;
+      case 'kit-rename': S.form.rename = id; S.form.renameVal = (byId(S.kits, id) || {}).name || ''; render(); return;
+      case 'kit-rename-save': { const v = (S.form.renameVal || '').trim(); if (v) await db.doc('kits/' + id).update({ name: v, updatedAt: nowIso() }); S.form.rename = null; return; }
+      case 'kit-link': { const k = byId(S.kits, id) || currentKit(); if (!k) return; await copyText(location.href.split('#')[0] + '#kit-' + k.id); return; }
+      case 'kit-zip': { const k = byId(S.kits, id) || currentKit(); if (k) await downloadKit(k); return; }
+      case 'copy': await copyText(el.dataset.text); return;
+      case 'dl-asset': { const a = byId(S.assets, id); if (a) await downloadAsset(a); return; }
+      case 'ptab': S.ui.partnerTab = el.dataset.v; render(); return;
+      case 'libtab': S.ui.libTab = el.dataset.v; render(); return;
+      case 'view-as-google': S.ask.showPending = true; return;
+      case 'req-open': S.form.req = { partnerId: el.dataset.partner, assetId: el.dataset.asset || null, what: '', note: '' }; render(); return;
+      case 'req-cancel': S.form.req = null; render(); return;
+      case 'req-send': { e.preventDefault(); const F = S.form.req; const P = partner(F.partnerId); const exp = expectedFor(P).filter(c => c.state === 'missing' || c.state === 'returned'); const what = F.what || (F.assetId ? 'Renew before it expires' : (exp[0] ? exp[0].label.replace(/^(\w)/, m => m.toUpperCase()) + ' (' + exp[0].state + ')' : 'Something else')); await sendRequest({ partnerId: F.partnerId, assetId: F.assetId, kind: 'update', text: what + (F.note ? ' — ' + F.note : ''), fromLabel: label, status: 'open', createdAt: nowIso() }); logEvent('request', { partnerId: F.partnerId, assetId: F.assetId, text: what }); F.sent = true; render(); toast('Sent to ' + P.name + (membersOf(F.partnerId).length ? '' : ' · nobody is linked to this partner yet, it waits in their to-do')); return; }
+      case 'req-done': await db.doc((S.canEdit ? 'requests/' : 'inbox/' + safeId(S.uid) + '/requests/') + id).update({ status: 'done', doneAt: nowIso() }); toast('Marked done'); return;
+      case 'ask-partners': { const f = S.ask.facets; const targets = S.partners.filter(p => p.status !== 'invited' && (!f.industry || ((p.claims || {}).industries || []).includes(f.industry) || !f.solution || ((p.claims || {}).solutions || []).includes(f.solution))); for (const p of targets) await sendRequest({ partnerId: p.id, assetId: null, kind: 'ask', text: 'A field marketer is looking for ' + (phrase(f) || 'this').replace(/^(for|in) /, '') + ', nothing verified matched', fromLabel: label, status: 'open', createdAt: nowIso() }); S.ask.requested = true; logEvent('ask_partners', { partners: targets.map(p => p.id) }); render(); toast('Sent to ' + num(targets.length, 'partner', 'partners')); return; }
+      case 'renew': { const a = byId(S.assets, id); if (!a) return; await db.doc('assets/' + a.id).update({ validUntil: addMonths(new Date(), 12), status: 'live', updatedAt: nowIso() }); logEvent('renew', { assetId: a.id, partnerId: a.partnerId }); toast('Renewed to ' + fmtDate(addMonths(new Date(), 12))); return; }
+      case 'withdraw': { await db.doc('assets/' + id).update({ status: 'draft', updatedAt: nowIso() }); toast('Withdrawn to draft'); return; }
+      case 'upload-fresh': S.form.upload = null; if (S.route !== 'upload') go('upload'); else render(); return;
+      case 'upload-for': { S.form.upload = null; uploadView(); const T = S.form.upload.tags; if (el.dataset.type) T.type = el.dataset.type; if (el.dataset.solution) { T.usecase = SOLUTIONS[el.dataset.solution][0]; T.lob = LOB_DEFAULT[T.usecase] || T.lob; } if (el.dataset.industry) T.industry = el.dataset.industry; return; }
+      case 'upload-replace': { const a = byId(S.assets, id); S.form.upload = null; uploadView(); const U = S.form.upload; if (a) { U.replacesId = a.status === 'live' ? a.id : ''; U.editId = a.status !== 'live' ? a.id : null; Object.assign(U.tags, { title: a.title, type: a.type, usecase: a.usecase, industry: a.industry, region: a.region, lob: a.lob || U.tags.lob, language: a.language || '', validUntil: a.validUntil || U.tags.validUntil, extEvents: !!a.extEvents, extPublishing: !!a.extPublishing, summary: a.summary || '' }); } return; }
+      case 'upload-nofile': S.form.upload.files = []; S.form.upload.step = 2; render(); return;
+      case 'upload-next': S.form.upload.step = Math.min(3, S.form.upload.step + 1); render(); return;
+      case 'upload-back': S.form.upload.step = Math.max(1, S.form.upload.step - 1); render(); return;
+      case 'file-x': S.form.upload.files.splice(Number(el.dataset.i), 1); render(); return;
+      case 'suggest': await suggestTags(); return;
+      case 'upload-draft': await submitUpload('draft'); return;
+      case 'upload-submit': await submitUpload('pending'); return;
+      case 'qsel': S.ui.queueSel = id; S.ui.returning = false; render(); return;
+      case 'return-start': S.ui.returning = true; S.form.ret = { reason: 'Tags don\'t match the content', note: '' }; render(); return;
+      case 'return-cancel': S.ui.returning = false; render(); return;
+      case 'return-send': { e.preventDefault(); const a = byId(S.assets, id); if (!a) return; const note = ((S.form.ret || {}).reason || '') + ((S.form.ret || {}).note ? ' — ' + S.form.ret.note : ''); await db.doc('assets/' + a.id).update({ status: 'returned', returnNote: note, updatedAt: nowIso() }); logEvent('return', { assetId: a.id, partnerId: a.partnerId }); S.ui.returning = false; S.ui.queueSel = null; toast('Returned to ' + partnerName(a.partnerId) + ' with your note'); return; }
+      case 'approve': { const a = byId(S.assets, id); if (!a) return; await db.doc('assets/' + a.id).update({ status: 'live', verifiedAt: nowIso(), verifiedBy: label, updatedAt: nowIso() }); if (a.replacesId && byId(S.assets, a.replacesId)) await db.doc('assets/' + a.replacesId).update({ status: 'archived', updatedAt: nowIso() }); logEvent('approve', { assetId: a.id, partnerId: a.partnerId, days: daysSince(a.submittedAt) }); S.ui.queueSel = null; toast('Approved · live in Ask'); return; }
+      case 'assign-open': S.assign = { q: '', hits: [], partnerId: el.dataset.partner }; render(); if (S.cap.user) S.cap.user.search('').then(hits => { if (S.assign.partnerId) { S.assign.hits = hits.filter(p => !S.roles.some(r => r.id === p.id) && !p.isMe).slice(0, 8); render(); } }).catch(() => { }); return;
+      case 'assign-cancel': S.assign = { q: '', hits: [], partnerId: null }; render(); return;
+      case 'assign-pick': { const pid = el.dataset.partner; const uid = safeId(id); if (!uid) return; await db.doc('roles/' + uid).set({ kind: 'partner', partnerId: pid, addedBy: S.uid || null, addedAt: nowIso() }); for (const r of S.requests.filter(r => r.partnerId === pid && reqStatus(r) === 'open')) { const copy = Object.assign({}, r); delete copy.id; delete copy.to; try { await db.doc('inbox/' + uid + '/requests/' + r.id).set(copy); } catch (x) { } } S.assign = { q: '', hits: [], partnerId: null }; toast('Added to ' + partnerName(pid) + ' · share this page with them as Contributor'); return; }
+      case 'assign-remove': await db.doc('roles/' + id).delete(); toast('Removed'); return;
+      case 'np-open': S.form.newPartner = { name: '', line: '', managerName: '', contact: '', solutions: '', industries: '' }; render(); return;
+      case 'np-cancel': S.form.newPartner = null; render(); return;
+      case 'np-save': { e.preventDefault(); const F = S.form.newPartner; const split = (s, list) => String(s || '').split(',').map(x => canon(x, list)).filter(Boolean); await db.collection('partners').add({ name: F.name.trim(), line: F.line || '', managerName: F.managerName || '', contact: F.contact || '', claims: { solutions: split(F.solutions, Object.keys(SOLUTIONS)), industries: split(F.industries, INDUSTRIES) }, status: 'active', createdAt: nowIso() }); S.form.newPartner = null; toast('Partner added'); return; }
+      case 'settings-save': { e.preventDefault(); const F = S.form.settings || S.settings; const out = {}; ['digestDay', 'expiryWarnDays', 'reviewTargetDays', 'nudgeDay', 'escalateDays'].forEach(k => out[k] = Math.max(1, Number(F[k] || S.settings[k]))); await db.doc('settings/main').set(out); S.form.settings = null; toast('Saved'); return; }
+    }
+  } catch (err) { console.error(err); toast(errMsg(err)); render(); }
+}
+function errMsg(err) { const c = err && err.code; if (c === 'quota_exceeded') return 'The store is full, delete something first'; if (c === 'invalid_argument') return 'That write was refused'; if (c === 'not_granted') return 'Not allowed in this view'; if (c === 'declined') return 'Download cancelled'; if (c === 'too_large') return 'File too large for this prototype'; if (c === 'unsupported_type') return 'That file type is not stored here'; return 'Something went wrong: ' + (c || (err && err.message) || 'unknown'); }
+async function toggleKit(assetId) {
+  const db = S.cap.db; let k = currentKit();
+  if (!k) { const ref = await db.collection('kits').add({ name: 'My kit', ownerId: S.uid || 'anon', items: [assetId], note: '', createdAt: nowIso(), updatedAt: nowIso() }); S.kitId = ref.id; try { localStorage.setItem('gpm.kit', ref.id); } catch (x) { } const pid0 = (byId(S.assets, assetId) || {}).partnerId; logEvent('add_to_kit', { assetId, partnerId: pid0 }); bump(pid0, 'kits', assetId, 1); toast('Added to a new kit'); return; }
+  const items = (k.items || []).slice(); const i = items.indexOf(assetId); const pid = (byId(S.assets, assetId) || {}).partnerId;
+  if (i === -1) { items.push(assetId); logEvent('add_to_kit', { assetId, partnerId: pid, kitId: k.id }); bump(pid, 'kits', assetId, 1); } else { items.splice(i, 1); bump(pid, 'kits', assetId, -1); }
+  await db.doc('kits/' + k.id).update({ items, updatedAt: nowIso() });
+}
+async function copyText(t) { try { await navigator.clipboard.writeText(t); toast('Link copied'); } catch (e) { toast('Copy this: ' + t); } }
+async function submitUpload(status) {
+  const F = S.form.upload; const T = F.tags; const db = S.cap.db; const P = partner(S.role.partnerId); if (!F || !P) return;
+  F.busy = true; render();
+  const files = F.files.length ? F.files : [null]; let count = 0;
+  try {
+    for (const f of files) {
+      let fileAssetId = null, fileType = '', fileName = f ? f.name : '';
+      if (f && S.cap.assets) { const ext = (f.name.split('.').pop() || '').toLowerCase(); const type = FILE_TYPES[ext]; if (type) { try { const r = await S.cap.assets.upload(f, { type }); fileAssetId = r.id; fileType = r.contentType; } catch (err) { toast(errMsg(err) + ' · kept as a reference'); } } }
+      const base = { title: T.title.trim(), partnerId: P.id, type: T.type, usecase: T.usecase, solution: SOLUTION_OF[T.usecase] || '', industry: T.industry, lob: T.lob, region: T.region, language: T.language, summary: T.summary.trim(), status, validUntil: T.validUntil, extEvents: !!T.extEvents, extPublishing: !!T.extPublishing, fileName, fileType, submittedAt: status === 'pending' ? nowIso() : null, verifiedAt: null, verifiedBy: null, returnNote: '', updatedAt: nowIso() };
+      if (fileAssetId) base.fileAssetId = fileAssetId;
+      if (F.editId && byId(S.assets, F.editId)) { const old = byId(S.assets, F.editId); const upd = Object.assign({}, base); if (!fileAssetId) { delete upd.fileName; delete upd.fileType; } await db.doc('assets/' + old.id).update(upd); }
+      else { const rep = F.replacesId ? byId(S.assets, F.replacesId) : null; await db.collection('assets').add(Object.assign(base, { version: rep ? (rep.version || 1) + 1 : 1, replacesId: rep ? rep.id : null, createdAt: nowIso() })); }
+      count++;
+    }
+    logEvent(status === 'pending' ? 'submit' : 'draft', { partnerId: P.id, count });
+    F.done = { count, replaced: !!F.replacesId }; F.busy = false; render();
+  } catch (err) { F.busy = false; toast(errMsg(err)); render(); }
+}
+
+// ───────────────────────── downloads: zip of the kit ─────────────────────────
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(u8) { let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(files) {
+  const enc = new TextEncoder(); const parts = []; const central = []; let offset = 0;
+  const d = new Date(); const dosTime = ((d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1)) & 0xFFFF; const dosDate = (((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate()) & 0xFFFF;
+  const w16 = (v, b, o) => { b[o] = v & 255; b[o + 1] = (v >>> 8) & 255; }; const w32 = (v, b, o) => { w16(v & 0xFFFF, b, o); w16((v >>> 16) & 0xFFFF, b, o + 2); };
+  files.forEach(f => { const name = enc.encode(f.name); const data = f.data instanceof Uint8Array ? f.data : enc.encode(f.data); const crc = crc32(data); const lh = new Uint8Array(30 + name.length); w32(0x04034b50, lh, 0); w16(20, lh, 4); w16(0x0800, lh, 6); w16(0, lh, 8); w16(dosTime, lh, 10); w16(dosDate, lh, 12); w32(crc, lh, 14); w32(data.length, lh, 18); w32(data.length, lh, 22); w16(name.length, lh, 26); w16(0, lh, 28); lh.set(name, 30); parts.push(lh, data);
+    const ch = new Uint8Array(46 + name.length); w32(0x02014b50, ch, 0); w16(20, ch, 4); w16(20, ch, 6); w16(0x0800, ch, 8); w16(0, ch, 10); w16(dosTime, ch, 12); w16(dosDate, ch, 14); w32(crc, ch, 16); w32(data.length, ch, 20); w32(data.length, ch, 24); w16(name.length, ch, 28); w16(0, ch, 30); w16(0, ch, 32); w16(0, ch, 34); w16(0, ch, 36); w32(0, ch, 38); w32(offset, ch, 42); ch.set(name, 46); central.push(ch); offset += lh.length + data.length; });
+  const cdSize = central.reduce((n, c) => n + c.length, 0); const eocd = new Uint8Array(22); w32(0x06054b50, eocd, 0); w16(0, eocd, 4); w16(0, eocd, 6); w16(files.length, eocd, 8); w16(files.length, eocd, 10); w32(cdSize, eocd, 12); w32(offset, eocd, 16); w16(0, eocd, 20);
+  return new Blob(parts.concat(central, [eocd]), { type: 'application/zip' });
+}
+async function fetchBlob(id) { try { const r = await fetch('/_blob/' + id); if (!r.ok) return null; return new Uint8Array(await r.arrayBuffer()); } catch (e) { return null; } }
+async function downloadKit(k) {
+  if (!S.cap.downloads) { toast('Downloads are not available in this view'); return; }
+  const items = (k.items || []).map(id => byId(S.assets, id)).filter(a => a && searchable(a));
+  if (!items.length) { toast('Nothing live in this kit'); return; }
+  toast('Packing ' + num(items.length, 'asset', 'assets') + '…');
+  const files = []; const manifest = { kit: k.name, generated: nowIso(), classification: 'Google internal', assets: [] };
+  for (const a of items) {
+    const base = slug(partnerName(a.partnerId)) + '--' + slug(a.title);
+    let data = a.fileAssetId ? await fetchBlob(a.fileAssetId) : null; let name;
+    if (data) { const ext = (a.fileName || '').split('.').pop() || 'bin'; name = base + '.' + ext; }
+    else { name = base + '.md'; data = '# ' + a.title + '\n\n' + (a.summary || '') + '\n\n- Partner: ' + partnerName(a.partnerId) + '\n- Type: ' + a.type + '\n- Use case: ' + a.usecase + ' (' + a.solution + ')\n- Industry: ' + a.industry + '\n- Line of business: ' + (a.lob || '') + '\n- Region: ' + a.region + '\n- Valid until: ' + a.validUntil + '\n- External use: ' + (a.extEvents ? 'customer-approved for events' : 'internal only') + '\n- Verified: ' + (a.verifiedAt || '') + '\n' + (a.fileName ? '\nFile kept as a reference in the prototype: ' + a.fileName + '\n' : '\nNo file attached to this asset.\n'); }
+    files.push({ name, data }); manifest.assets.push({ file: name, title: a.title, partner: partnerName(a.partnerId), type: a.type, use_case: a.usecase, solution: a.solution, industry: a.industry, lob: a.lob, region: a.region, valid_until: a.validUntil, external_use: a.extEvents, verified_at: a.verifiedAt });
+    logEvent('download', { assetId: a.id, partnerId: a.partnerId, kitId: k.id }); bump(a.partnerId, 'downloads', a.id, 1);
+  }
+  files.push({ name: 'manifest.json', data: JSON.stringify(manifest, null, 2) });
+  const blob = makeZip(files);
+  try { await S.cap.downloads.save({ filename: slug(k.name) + '.zip', data: blob }); toast('Saved'); } catch (err) { toast(errMsg(err)); }
+}
+async function downloadAsset(a) {
+  if (!S.cap.downloads) { toast('Downloads are not available in this view'); return; }
+  const data = a.fileAssetId ? await fetchBlob(a.fileAssetId) : null; if (!data) { toast('No file to download'); return; }
+  logEvent('download', { assetId: a.id, partnerId: a.partnerId }); bump(a.partnerId, 'downloads', a.id, 1);
+  try { await S.cap.downloads.save({ filename: a.fileName || (slug(a.title) + '.bin'), data: new Blob([data]) }); toast('Saved'); } catch (err) { toast(errMsg(err)); }
+}
+
+boot();
+})();
+</script>
